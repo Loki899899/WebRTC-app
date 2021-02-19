@@ -12,7 +12,7 @@ var roomIds = {};
 app.use(express.static(__dirname + '/public'));
 
 io.on('connection', (socket) => {
-    console.log('client connected');
+    //console.log('client connected');
     socket.on('join', (roomId) => {        
 
         // These events are emitted only to the sender socket.
@@ -20,13 +20,14 @@ io.on('connection', (socket) => {
             console.log(`Creating room ${roomId} and emitting room_created socket event`);
             socket.join(roomId);
             socket.emit('room_created', roomId);
+            roomIds[roomId] = [];
             roomIds[roomId] = 1;
             console.log(roomIds);            
-        } else if (roomIds[roomId] > 0) {
+        } else if (roomIds[roomId] > 0 && roomIds[roomId] < 2) {
             console.log(`Joining room ${roomId} and emitting room_joined socket event`);
             socket.join(roomId);
             socket.emit('room_joined', roomId);
-            roomIds[roomId] = roomIds[roomId] + 1;
+            roomIds[roomId] += 1
             console.log(roomIds);
         } else {
             console.log(`Can't join room ${roomId}, emitting full_room socket event`);
@@ -51,7 +52,21 @@ io.on('connection', (socket) => {
         console.log(`Broadcasting webrtc_ice_candidate event to peers in room ${event.roomId}`);
         socket.broadcast.to(event.roomId).emit('webrtc_ice_candidate', event);
     })
-    socket.on('disconnect', () => console.log('client disconnected'));
+    socket.on('leave', roomId => {        
+        if(roomIds[roomId]) {
+            socket.broadcast.to(roomId).emit('leave', roomId);
+            console.log('left');
+            console.log(`address was ${socket.handshake.address}`);
+            roomIds[roomId] -= 1;
+            if(roomIds[roomId] == 0) {
+                delete roomIds[roomId];
+            }
+        }        
+        console.log(roomIds);
+    });
+    socket.on('disconnect', () => {        
+        //console.log('client disconnected');
+    });
 })
 
 server.listen(port, () => {
