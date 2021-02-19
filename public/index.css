@@ -2,20 +2,20 @@
     position: relative;
 }
 
-.remote-video {
+#remote-video {
     height: 40vw;
     max-width: 40vw;
 }
 
-.local-video {
-    height: 7vw;
-    max-width: 7vw;
+#local-video {
+    height: 8vw;
+    max-width: 8vw;
     position: absolute;
-    bottom: 3%;
+    top: 3%;
     left: 3%;
 }
 
-.no-remote-vid {
+.disp-none {
     display:none;
 }
 

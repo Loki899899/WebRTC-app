@@ -15,12 +15,13 @@
         <label>Enter the number of the room you want to connect</label>
         <input id="room-input" type="text" />
         <button type="button" id="connect-button">CONNECT</button>
-      </div>
-  
-      <div id="video-chat-container" class="video-position" style="display:none">
-        <video class="local-video" autoplay="autoplay"></video>
-        <video class="remote-video" autoplay="autoplay"></video>
-      </div>  
+    </div>
+    <div id="chat-room" class="chat-room disp-none">
+        <div id="video-chat-container" class="video-position">
+            <video id="local-video" autoplay="autoplay"></video>
+            <video id="remote-video" autoplay="autoplay"></video>
+        </div>
+    </div>
 </body>
 <script src='./check.js'></script>
 <script src='./client.js'></script>

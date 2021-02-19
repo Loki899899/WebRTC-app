@@ -54,7 +54,7 @@ io.on('connection', (socket) => {
     })
     socket.on('leave', roomId => {        
         if(roomIds[roomId]) {
-            socket.broadcast.to(roomId).emit('leave', roomId);
+            socket.broadcast.to(roomId).emit('leave');
             console.log('left');
             console.log(`address was ${socket.handshake.address}`);
             roomIds[roomId] -= 1;

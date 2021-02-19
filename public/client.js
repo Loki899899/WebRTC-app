@@ -1,10 +1,10 @@
 //DOM elements
-const roomSelectionContainer = document.getElementById('room-selection-container')
+const roomSelectionContainer = $('#room-selection-container')
 const roomInput = document.getElementById('room-input')
 const connectButton = document.getElementById('connect-button')
-const videoChatContainer = document.getElementById('video-chat-container')
-const localVideoComponent = document.getElementsByClassName('local-video')
-const remoteVideoComponent = document.getElementsByClassName('remote-video')
+const videoChatContainer = $('#chat-room')
+const localVideoComponent = document.getElementById('local-video')
+const remoteVideoComponent = document.getElementById('remote-video')
 
 const socket = io()
 const mediaConstraints = {
@@ -69,8 +69,8 @@ function joinRoom(room) {
 }
 
 function showVideoConference() {
-    roomSelectionContainer.style = 'display: none'
-    videoChatContainer.style = 'display: block'
+    roomSelectionContainer.toggleClass('disp-none');
+    videoChatContainer.toggleClass('disp-none');
 }
 
 async function setLocalStream(mediaConstraints) {
@@ -188,10 +188,11 @@ window.addEventListener('beforeunload', event => {
     }    
 });
 
-socket.on('leave', (roomId) => {
+socket.on('leave', () => {
     console.log('set remote disp none');
-    remoteVideoComponent.style = 'display: none';
-    //localVideoComponent.toggleClass('only-local-vid').toggleAttribute('id', 'local-video')
+    remoteVideoComponent.style = 'display: none';    
+    localVideoComponent.style = 'min-width:40vw';
+    localVideoComponent.style = 'min-height:40vw';
 });
 // const socket = io();
 // var p2pConn;
