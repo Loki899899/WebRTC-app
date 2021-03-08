@@ -11,6 +11,8 @@ const shareOptions = document.getElementById('share-options')
 const candidatesSelect = document.getElementById('candidates')
 const userName = document.getElementById('user-name')
 const dropdown = document.getElementsByClassName("dropdown")[0]
+const presenterElement = document.getElementById('presenter')
+const presenterBtn = document.getElementById('presenter-changer')
 
 const socket = io()
 const mediaConstraints = {
@@ -25,8 +27,9 @@ let remoteStream
 let isRoomCreator
 let rtcPeerConnection // Connection between the local device and the remote peer.
 let roomId
+let presenter
+let attendees
 let joined = false
-let hasRights = false
 
 // Free public STUN servers provided by Google.
 const iceServers = {
@@ -46,15 +49,14 @@ connectButton.addEventListener('click', () => {
 })
 
 sSButton.addEventListener('click', async () => {
-    if(!isRoomCreator) {
+    if(presenter != userId) {
         alert("Ask for Sharing rights first")
     }
-    else if(hasRights){
+    else {
         sSFlag = true
         await setLocalStream(mediaConstraints)
         socket.emit('start_call', roomId)    
     }    
-    //joinRoom(roomInput.value)
 })
 
 startCall.addEventListener('click', async () => {
@@ -65,6 +67,8 @@ startCall.addEventListener('click', async () => {
 shareOptions.addEventListener('click', () => {
     document.getElementsByClassName('dropdown-items')[0].style.display = 'grid';
 })
+
+presenterBtn.addEventListener('click', () => {presenter.textContent = candidatesSelect.value; console.log('presenter changed')}, false)
 
 window.addEventListener('beforeunload', event => {
     if(joined) {
@@ -80,6 +84,7 @@ socket.on('room_created', async () => {
     joined = true
     hasRights = true
     isRoomCreator = true
+    presenter = userId
     showVideoConference()
 })
 
@@ -99,11 +104,12 @@ socket.on('full_room', () => {
     alert('The room is full, please try another one')
 })
 
-socket.on('attendee-update', (attenedee) => {
+socket.on('attendee-update', (attendee) => {
+    console.log(attendee)
     console.log('updating list')
     newOption = document.createElement('option')
-    newOption.value = attenedee
-    newOption.textContent = attenedee
+    newOption.value = attendee.length
+    newOption.textContent = attendee[attendee.length-1]
     candidatesSelect.appendChild(newOption)
 })
 
@@ -200,6 +206,10 @@ function addLocalTracks(rtcPeerConnection) {
     localStream.getTracks().forEach((track) => {
         rtcPeerConnection.addTrack(track, localStream)
     })
+}
+
+function changePresenter() {
+    presenter.textContent = candidatesSelect.value
 }
 
 async function createOffer(rtcPeerConnection) {
