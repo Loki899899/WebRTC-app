@@ -12,9 +12,6 @@
 <body>
     <div id="room-selection-container" class="centered">
         <h1>WebRTC video conference</h1>
-        <label>Enter name</label>
-        <input id="user-name" type="text" />
-        <br>
         <label>Enter the number of the room you want to connect</label>
         <input id="room-input" type="text" />
         <button type="button" id="connect-button">CONNECT</button>        
@@ -22,19 +19,6 @@
     <div id="chat-room" class="chat-room disp-none">
         <button type="button" id="video-call">Video Call</button>
         <button type="button" id="share-screen">Share Screen</button>
-        <div class="dropdown">            
-            <button type="button" id="share-options">&dArr;</button>
-            <div class="dropdown-items">
-                <div>
-                    <a href="#">Grant Permissions</a>
-                    <div class="share-permission">
-                        <select id="candidates">
-                        </select>
-                    </div>
-                </div>                
-                <a href="#">More Settings</a>
-            </div>
-        </div>        
         <div id="video-chat-container" class="video-position">
             <video id="local-video" autoplay="autoplay"></video>
             <video id="remote-video" autoplay="autoplay"></video>

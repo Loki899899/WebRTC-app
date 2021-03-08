@@ -1,30 +1,6 @@
 let haveMic = false;
 let haveWebcam = false;
 
-if (!navigator.mediaDevices || !navigator.mediaDevices.enumerateDevices) {
-    console.log("enumerateDevices() not supported.");
-}
-
-// List cameras and microphones.
-function getUserPermission() {
-    navigator.mediaDevices.getUserMedia({ audio: true, video: true })
-        .then((stream) => {
-            video.srcObject = stream;
-            // navigator.mediaDevices.enumerateDevices()
-            //     .then(function (devices) {
-            //         devices.forEach(function (device) {
-            //             console.log(device.kind + ": " + device.label +
-            //                 " id = " + device.deviceId);
-            //         });
-            //     })
-            //     .catch(function (err) {
-            //         console.log(err.name + ": " + err.message);
-            //     });
-        }, () => {
-            confirmation = confirm("Devices not present or permission denied\nIf you wish to Allow permissions change it by clicking the icon beside the URL and reloading the page");
-        });
-}
-
 // if (!navigator.mediaDevices || !navigator.mediaDevices.enumerateDevices) {
 //     console.log('This browser does not support the API yet');
 // }
@@ -57,5 +33,28 @@ function getUserPermission() {
 //     .catch(function (err) {
 //         console.log(err.name + ": " + err.message);
 //     });
-// console.warn(!navigator.mediaDevices);
-// console.warn(!navigator.mediaDevices.enumerateDevices);
+console.warn(!navigator.mediaDevices);
+console.warn(!navigator.mediaDevices.enumerateDevices);
+if (!navigator.mediaDevices || !navigator.mediaDevices.enumerateDevices) {
+    console.log("enumerateDevices() not supported.");
+}
+
+// List cameras and microphones.
+function getUserPermission() {
+    navigator.mediaDevices.getUserMedia({ audio: true, video: true })
+        .then((stream) => {
+            video.srcObject = stream;
+            // navigator.mediaDevices.enumerateDevices()
+            //     .then(function (devices) {
+            //         devices.forEach(function (device) {
+            //             console.log(device.kind + ": " + device.label +
+            //                 " id = " + device.deviceId);
+            //         });
+            //     })
+            //     .catch(function (err) {
+            //         console.log(err.name + ": " + err.message);
+            //     });
+        }, () => {
+            confirmation = confirm("Devices not present or permission denied\nIf you wish to Allow permissions change it by clicking the icon beside the URL and reloading the page");
+        });
+}

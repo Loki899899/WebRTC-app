@@ -11,7 +11,7 @@
     height: 8vw;
     max-width: 8vw;
     position: absolute;
-    top: 3%;
+    bottom: 3%;
     left: 3%;
 }
 
@@ -22,16 +22,4 @@
 .only-local-vid {
     height: 40vw;
     max-width: 40vw;
-}
-
-.dropdown {
-    overflow: hidden;    
-}
-
-.dropdown-items {
-    display: none;
-}
-
-.dropdown-items:target {
-    display: block;
 }

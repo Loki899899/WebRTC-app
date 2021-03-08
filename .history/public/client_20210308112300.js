@@ -7,10 +7,6 @@ const videoChatContainer = $('#chat-room')
 const localVideoComponent = document.getElementById('local-video')
 const remoteVideoComponent = document.getElementById('remote-video')
 const startCall = document.getElementById('video-call')
-const shareOptions = document.getElementById('share-options')
-const candidatesSelect = document.getElementById('candidates')
-const userName = document.getElementById('user-name')
-const dropdown = document.getElementsByClassName("dropdown")[0]
 
 const socket = io()
 const mediaConstraints = {
@@ -18,15 +14,13 @@ const mediaConstraints = {
     video: true //{ width: 1280, height: 720 },
 }
 
-let userId
-let sSFlag = false
+let SSflag = false
 let localStream
 let remoteStream
 let isRoomCreator
 let rtcPeerConnection // Connection between the local device and the remote peer.
 let roomId
 let joined = false
-let hasRights = false
 
 // Free public STUN servers provided by Google.
 const iceServers = {
@@ -42,18 +36,12 @@ const iceServers = {
 // BUTTON LISTENER 
 connectButton.addEventListener('click', () => {
     joinRoom(roomInput.value)
-
 })
 
 sSButton.addEventListener('click', async () => {
-    if(!isRoomCreator) {
-        alert("Ask for Sharing rights first")
-    }
-    else if(hasRights){
-        sSFlag = true
-        await setLocalStream(mediaConstraints)
-        socket.emit('start_call', roomId)    
-    }    
+    SSflag = true
+    await setLocalStream(mediaConstraints)
+    socket.emit('start_call', roomId)    
     //joinRoom(roomInput.value)
 })
 
@@ -62,56 +50,64 @@ startCall.addEventListener('click', async () => {
     socket.emit('start_call', roomId)
 })
 
-shareOptions.addEventListener('click', () => {
-    document.getElementsByClassName('dropdown-items')[0].style.display = 'grid';
-})
-
-window.addEventListener('beforeunload', event => {
-    if(joined) {
-        socket.emit('leave', roomId, userId);
-    }
-    socket.close();    
-});
-
-// SOCKET EVENT CALLBACKS =====================================================
+// SOCKET EVENT CALLBACKS 
 socket.on('room_created', async () => {
     console.log('Socket event callback: room_created')
     await setLocalStream(mediaConstraints)
-    joined = true
-    hasRights = true
+    joined = true;
     isRoomCreator = true
-    showVideoConference()
-})
-
-socket.on('username-taken', () => {
-    alert("username already taken")
 })
 
 socket.on('room_joined', async () => {
     console.log('Socket event callback: room_joined')
-    dropdown.style.display = 'none'
     joined = true;
-    showVideoConference()
 })
 
 socket.on('full_room', () => {
     console.log('Socket event callback: full_room')
+
     alert('The room is full, please try another one')
 })
 
-socket.on('attendee-update', (attenedee) => {
-    console.log('updating list')
-    newOption = document.createElement('option')
-    newOption.value = attenedee
-    newOption.textContent = attenedee
-    candidatesSelect.appendChild(newOption)
-})
+// FUNCTIONS
+function joinRoom(room) {
+    if (room === '') {
+        alert('Please type a room ID')
+    } else {
+        roomId = room
+        socket.emit('join', room)
+        showVideoConference()
+    }
+}
 
+function showVideoConference() {
+    roomSelectionContainer.toggleClass('disp-none');
+    videoChatContainer.toggleClass('disp-none');
+}
+
+async function setLocalStream(mediaConstraints) {
+    let stream
+    try {
+        if(SSflag) {
+            stream = await navigator.mediaDevices.getDisplayMedia();
+        }
+        else {
+            stream = await navigator.mediaDevices.getUserMedia(mediaConstraints)
+        }                
+    } catch (error) {
+        console.error('Could not get user media', error);
+        alert('Media devices not present');
+    }
+
+    localStream = stream
+    localVideoComponent.srcObject = stream
+}
+
+// SOCKET EVENT CALLBACKS =====================================================
 socket.on('start_call', async () => {
     console.log('Socket event callback: start_call')
 
-    if (isRoomCreator || sSFlag) {
-        console.log('was creator')
+    if (isRoomCreator) {
         rtcPeerConnection = new RTCPeerConnection(iceServers)
         addLocalTracks(rtcPeerConnection)
         rtcPeerConnection.ontrack = setRemoteStream
@@ -125,13 +121,10 @@ socket.on('start_call', async () => {
 
 socket.on('webrtc_offer', async (event) => {
     console.log('Socket event callback: webrtc_offer')
-    console.log('this ran')
 
     if (!isRoomCreator) {
         rtcPeerConnection = new RTCPeerConnection(iceServers)
-        if(sSFlag) {
-            addLocalTracks(rtcPeerConnection)
-        }
+        addLocalTracks(rtcPeerConnection)
         rtcPeerConnection.ontrack = setRemoteStream
         rtcPeerConnection.onicecandidate = sendIceCandidate
         rtcPeerConnection.setRemoteDescription(new RTCSessionDescription(event))
@@ -155,47 +148,7 @@ socket.on('webrtc_ice_candidate', (event) => {
     rtcPeerConnection.addIceCandidate(candidate)
 })
 
-socket.on('leave', () => {
-    console.log('set remote disp none');
-    remoteVideoComponent.style = 'display: none';    
-    localVideoComponent.style = 'min-width:40vw';
-    localVideoComponent.style = 'min-height:40vw';
-});
-
 // FUNCTIONS ==================================================================
-function joinRoom(room) {
-    if (room === '' || userName.value == '') {
-        alert('Please type a room ID')
-    } else{
-        userId = userName.value
-        roomId = room
-        socket.emit('join', room, userName.value)        
-    }
-}
-
-function showVideoConference() {
-    roomSelectionContainer.toggleClass('disp-none');
-    videoChatContainer.toggleClass('disp-none');
-}
-
-async function setLocalStream(mediaConstraints) {
-    let stream
-    try {
-        if(sSFlag && isRoomCreator) {
-            stream = await navigator.mediaDevices.getDisplayMedia();
-        }
-        else if(!sSFlag) {
-            stream = await navigator.mediaDevices.getUserMedia(mediaConstraints)
-        }                
-    } catch (error) {
-        console.error('Could not get user media', error);
-        alert('Media devices not present');
-    }
-
-    localStream = stream
-    localVideoComponent.srcObject = stream
-}
-
 function addLocalTracks(rtcPeerConnection) {
     localStream.getTracks().forEach((track) => {
         rtcPeerConnection.addTrack(track, localStream)
@@ -210,6 +163,7 @@ async function createOffer(rtcPeerConnection) {
     } catch (error) {
         console.error(error)
     }
+
     socket.emit('webrtc_offer', {
         type: 'webrtc_offer',
         sdp: sessionDescription,
@@ -248,6 +202,19 @@ function sendIceCandidate(event) {
     }
 }
 
+window.addEventListener('beforeunload', event => {
+    if(joined) {
+        socket.emit('leave', roomId);
+    }
+    socket.close();    
+});
+
+socket.on('leave', () => {
+    console.log('set remote disp none');
+    remoteVideoComponent.style = 'display: none';    
+    localVideoComponent.style = 'min-width:40vw';
+    localVideoComponent.style = 'min-height:40vw';
+});
 // const socket = io();
 // var p2pConn;
 
