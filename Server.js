@@ -1,7 +1,7 @@
 const express = require('express'),
     fs = require('fs'),
     app = express(),
-    port = 3001,
+    port = 3000,
     options = {
         key: fs.readFileSync('key.pem'),
         cert: fs.readFileSync('cert.pem')
@@ -10,7 +10,9 @@ const express = require('express'),
     io = require('socket.io')(server);
 var roomIds = {};
 var users = {};
+var currentPresenter
 app.use(express.static(__dirname + '/public'));
+let socketToSend;
 
 io.on('connection', (socket) => {
     //console.log('client connected');
@@ -24,18 +26,20 @@ io.on('connection', (socket) => {
             roomIds[roomId] = [];
             roomIds[roomId].push(userId);
             console.log(roomIds);     
-            users[socket.handshake.address] = userId
+            users[userId] = socket.id
             io.to(roomId).emit('attendee-update', roomIds[roomId])       
         } else if (roomIds[roomId].includes(userId)) {
             socket.emit('username-taken')
-        }else if (roomIds[roomId].length > 0 && roomIds[roomId].length < 3) {  //when room with given id is present and the limit to be implemented later
+        }else if (roomIds[roomId].length > 0 && roomIds[roomId].length < 4) {  //when room with given id is present and the limit to be implemented later
             console.log(`Joining room ${roomId} and emitting room_joined socket event`);
+            socketToSend = socket.id
             socket.join(roomId);
             socket.emit('room_joined', roomId);
             roomIds[roomId].push(userId);
             console.log(roomIds);
-            users[socket.handshake.address] = userId
+            users[userId] = socket.id
             io.to(roomId).emit('attendee-update', roomIds[roomId])
+            socket.emit('presenter-change', currentPresenter)
         } else {  //if the room is full
             console.log(`Can't join room ${roomId}, emitting full_room socket event`);
             socket.emit('full_room', roomId);
@@ -44,20 +48,20 @@ io.on('connection', (socket) => {
 
     // These events are emitted to all the sockets connected to the same room except the sender.
     socket.on('start_call', (roomId) => {
-        console.log(`Broadcasting start_call event to peers in room ${roomId}`);
+        console.log(`Broadcasting start_call event to peers in room ${roomId} by ${socket.id}`);
         //socket.broadcast.to(roomId).emit('start_call');
         io.in(roomId).emit('start_call')
     })
     socket.on('webrtc_offer', (event) => {
-        console.log(`Broadcasting webrtc_offer event to peers in room ${event.roomId}`);
-        socket.broadcast.to(event.roomId).emit('webrtc_offer', event.sdp);
+        console.log(`Broadcasting webrtc_offer event to peers in room ${event.roomId} by ${socket.id}`);
+        socket.broadcast.to(event.roomId).emit('webrtc_offer', event.sdp, currentPresenter);
     })
     socket.on('webrtc_answer', (event) => {
-        console.log(`Broadcasting webrtc_answer event to peers in room ${event.roomId}`);
+        console.log(`Broadcasting webrtc_answer event to peers in room ${event.roomId} by ${socket.id}`);
         socket.broadcast.to(event.roomId).emit('webrtc_answer', event.sdp);
     })
     socket.on('webrtc_ice_candidate', (event) => {
-        console.log(`Broadcasting webrtc_ice_candidate event to peers in room ${event.roomId}`);
+        console.log(`Broadcasting webrtc_ice_candidate event to peers in room ${event.roomId} by ${socket.id}`);
         socket.broadcast.to(event.roomId).emit('webrtc_ice_candidate', event);
     })
     socket.on('leave', (roomId,userId) => {
@@ -73,7 +77,15 @@ io.on('connection', (socket) => {
         }
         console.log(roomIds);
     });
+    socket.on('presenter-change', (event) => {
+        console.log('changing presenter to ' + event.presenter + ' in room ' + event.roomId)        
+        if(currentPresenter != event.presenter) {
+            io.to(event.roomId).emit('presenter-change', event.presenter)
+        }
+        currentPresenter = event.presenter        
+    })
     socket.on('disconnect', () => {
+        //console.log(socket)
         //console.log('client disconnected');
     });
 })

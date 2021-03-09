@@ -20,16 +20,18 @@ const mediaConstraints = {
     video: true //{ width: 1280, height: 720 },
 }
 
-let userId
-let sSFlag = false
-let localStream
-let remoteStream
-let isRoomCreator
-let rtcPeerConnection // Connection between the local device and the remote peer.
-let roomId
-let presenter
-let attendees
-let joined = false
+let userId             // user ID of every user in room
+let sSFlag = false     // flag to toggle screen Sharing
+let localStream        // the local stream to be shown on the sneder
+let remoteStream       // the remote stream to be shown to other peers
+let isRoomCreator      // var to now if a user is creator 
+let rtcPeerConnection  // Connection between the local device and the remote peer.
+let roomId             // room Id of a room peer is connected to
+let presenter          // var to change presenter in a room when screen sharing
+let attendees          // var to know attendees in a room
+let joined = false     // used for changing display on video stop when user leaves
+let streamIsLive = false
+let hasDevices = true
 
 // Free public STUN servers provided by Google.
 const iceServers = {
@@ -42,34 +44,57 @@ const iceServers = {
     ]
 }
 
-// BUTTON LISTENER 
+// LISTENERS
+
+// triggered when Connect button is clicked
 connectButton.addEventListener('click', () => {
     joinRoom(roomInput.value)
-
 })
 
+// triggered when Share Screen button is clicked
+// also checks if a user is presenter or not and does screen sharing accordingly
 sSButton.addEventListener('click', async () => {
+    console.log('presenter = ' + presenter + ' user = ' + userId)
     if(presenter != userId) {
         alert("Ask for Sharing rights first")
     }
     else {
         sSFlag = true
         await setLocalStream(mediaConstraints)
-        socket.emit('start_call', roomId)    
+        if(hasDevices) {
+            socket.emit('start_call', roomId)    
+        }        
     }    
 })
 
+// triggered when Video Call button is clicked or Screen is shrared
 startCall.addEventListener('click', async () => {
     await setLocalStream(mediaConstraints)
-    socket.emit('start_call', roomId)
+    if(hasDevices) {
+        socket.emit('start_call', roomId)    
+    }        
 })
 
+// triggered when Creator clicks on more options (downward arrow)
+// displays options for creator
 shareOptions.addEventListener('click', () => {
     document.getElementsByClassName('dropdown-items')[0].style.display = 'grid';
 })
 
-presenterBtn.addEventListener('click', () => {presenter.textContent = candidatesSelect.value; console.log('presenter changed')}, false)
+// triggered when a new presenter is granted permission
+// grants the selected attendee the rights to share screen
+presenterBtn.addEventListener('click', () => {
+    presenter.textContent = candidatesSelect.value
+    presenter = candidatesSelect.value
+    socket.emit('presenter-change', {
+        presenter,
+        roomId
+    })
+    console.log(presenter)
+    console.log('presenter changed')
+}, false)
 
+// Use to close sockets and let server know when a peer leaves
 window.addEventListener('beforeunload', event => {
     if(joined) {
         socket.emit('leave', roomId, userId);
@@ -80,11 +105,14 @@ window.addEventListener('beforeunload', event => {
 // SOCKET EVENT CALLBACKS =====================================================
 socket.on('room_created', async () => {
     console.log('Socket event callback: room_created')
-    await setLocalStream(mediaConstraints)
+    // await setLocalStream(mediaConstraints)
     joined = true
-    hasRights = true
     isRoomCreator = true
     presenter = userId
+    socket.emit('presenter-change', {
+        presenter,
+        roomId
+    })
     showVideoConference()
 })
 
@@ -97,6 +125,7 @@ socket.on('room_joined', async () => {
     dropdown.style.display = 'none'
     joined = true;
     showVideoConference()
+    socket.emit('start_call', roomId)
 })
 
 socket.on('full_room', () => {
@@ -105,49 +134,70 @@ socket.on('full_room', () => {
 })
 
 socket.on('attendee-update', (attendee) => {
-    console.log(attendee)
-    console.log('updating list')
+    // console.log(attendee)
+    // console.log('updating list')
+    attendees = attendee
     newOption = document.createElement('option')
-    newOption.value = attendee.length
+    newOption.value = attendee[attendee.length-1]
     newOption.textContent = attendee[attendee.length-1]
     candidatesSelect.appendChild(newOption)
 })
 
+socket.on('presenter-change', newPresenter => {
+    if(streamIsLive) {
+        stopVideoStream()
+        streamIsLive = false
+    }
+    //console.log('pre '+presenter + 'user '+ userId)
+    if(remoteVideoComponent.srcObject != null) {
+        //console.log('not yet changed')
+        remoteVideoComponent.srcObject = null
+    }
+    presenter = newPresenter 
+    presenterElement.textContent = presenter   
+})
+
 socket.on('start_call', async () => {
     console.log('Socket event callback: start_call')
-
-    if (isRoomCreator || sSFlag) {
-        console.log('was creator')
-        rtcPeerConnection = new RTCPeerConnection(iceServers)
-        addLocalTracks(rtcPeerConnection)
-        rtcPeerConnection.ontrack = setRemoteStream
-        rtcPeerConnection.onicecandidate = sendIceCandidate
-        await createOffer(rtcPeerConnection)
-    }
-    else {
-        console.log('not creator')
+    if (localStream) {
+        if ((isRoomCreator || sSFlag)&& presenter==userId) {
+            streamIsLive = true     
+            rtcPeerConnection = new RTCPeerConnection(iceServers)
+            addLocalTracks(rtcPeerConnection)  //to be checked later
+            rtcPeerConnection.ontrack = setRemoteStream
+            rtcPeerConnection.onicecandidate = sendIceCandidate
+            await createOffer(rtcPeerConnection)
+        }
     }
 })
 
-socket.on('webrtc_offer', async (event) => {
-    console.log('Socket event callback: webrtc_offer')
-    console.log('this ran')
-
-    if (!isRoomCreator) {
-        rtcPeerConnection = new RTCPeerConnection(iceServers)
-        if(sSFlag) {
-            addLocalTracks(rtcPeerConnection)
+socket.on('webrtc_offer', async (event, currentPresenter) => {
+    console.log('Socket event callback: webrtc_offer')    
+    if(!remoteVideoComponent.srcObject) {
+        console.log('did answer')
+        if (!isRoomCreator || currentPresenter !=userId) {
+            rtcPeerConnection = new RTCPeerConnection(iceServers)
+            // if(sSFlag) {
+            //     addLocalTracks(rtcPeerConnection)
+            // }
+            rtcPeerConnection.ontrack = setRemoteStream
+            rtcPeerConnection.onicecandidate = sendIceCandidate
+            rtcPeerConnection.setRemoteDescription(new RTCSessionDescription(event))
+            await createAnswer(rtcPeerConnection)
         }
-        rtcPeerConnection.ontrack = setRemoteStream
-        rtcPeerConnection.onicecandidate = sendIceCandidate
-        rtcPeerConnection.setRemoteDescription(new RTCSessionDescription(event))
-        await createAnswer(rtcPeerConnection)
+    }
+    else {
+        console.log('wasnt answerd')
     }
 })
 
 socket.on('webrtc_answer', (event) => {
-    console.log('Socket event callback: webrtc_answer')
-    rtcPeerConnection.setRemoteDescription(new RTCSessionDescription(event))
+    console.log(rtcPeerConnection)
+    if(rtcPeerConnection.signalingState != 'stable' || presenter == userId) {
+        console.log('recieved here')
+        console.log('Socket event callback: webrtc_answer')
+        rtcPeerConnection.setRemoteDescription(new RTCSessionDescription(event))
+    }
 })
 
 socket.on('webrtc_ice_candidate', (event) => {
@@ -162,10 +212,8 @@ socket.on('webrtc_ice_candidate', (event) => {
 })
 
 socket.on('leave', () => {
-    console.log('set remote disp none');
-    remoteVideoComponent.style = 'display: none';    
-    localVideoComponent.style = 'min-width:40vw';
-    localVideoComponent.style = 'min-height:40vw';
+    console.log('set remote disp none');    
+    remoteVideoComponent.srcObject = null
 });
 
 // FUNCTIONS ==================================================================
@@ -187,7 +235,7 @@ function showVideoConference() {
 async function setLocalStream(mediaConstraints) {
     let stream
     try {
-        if(sSFlag && isRoomCreator) {
+        if(sSFlag && presenter==userId) {
             stream = await navigator.mediaDevices.getDisplayMedia();
         }
         else if(!sSFlag) {
@@ -195,7 +243,8 @@ async function setLocalStream(mediaConstraints) {
         }                
     } catch (error) {
         console.error('Could not get user media', error);
-        alert('Media devices not present');
+        alert('Media devices not present\nOr\nPermission Denied');     
+        hasDevices = false   
     }
 
     localStream = stream
@@ -224,6 +273,7 @@ async function createOffer(rtcPeerConnection) {
         type: 'webrtc_offer',
         sdp: sessionDescription,
         roomId,
+        userId,
     })
 }
 
@@ -245,7 +295,16 @@ async function createAnswer(rtcPeerConnection) {
 
 function setRemoteStream(event) {
     remoteVideoComponent.srcObject = event.streams[0]
-    remoteStream = event.stream
+    remoteStream = event.stream    
+}
+
+function stopVideoStream() {
+    console.log('stopping stream')
+    localVideoComponent.srcObject = null
+    // remoteVideoComponent.srcObject = null    
+    if(localStream.getVideoTracks()[0].readyState == 'live') {
+        localStream.getTracks().forEach(track => track.stop())
+    }    
 }
 
 function sendIceCandidate(event) {
