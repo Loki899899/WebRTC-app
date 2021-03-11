@@ -18,16 +18,17 @@ io.on('connection', (socket) => {
     socket.on('join', (roomId, userId) => {        
         if (!Object.keys(roomIds).includes(roomId)) { //if no room with the given id is present new room is created
             console.log(`room ${roomId} created by ${userId}`)
-            socket.join(roomId)            
+            socket.join(roomId)                               
             roomIds[roomId] = {}
             roomIds[roomId].socketIds = []
             roomIds[roomId].peers = [] 
             roomIds[roomId].socketIds.push(socket.id)  
             roomIds[roomId].peers.push(userId)
+            console.log(roomIds)
+            io.in(roomId).emit('attendee-update', roomIds[roomId].peers)
             socket.emit('room_created')
             // console.log(roomIds)
-            // console.log(roomIds[roomId].peers)
-            io.to(roomId).emit('attendee-update', roomIds[roomId].peers.length)       
+            // console.log(roomIds[roomId].peers)            
         } else if (roomIds[roomId].peers.includes(userId)) {
             socket.emit('username-taken')
         }else if (roomIds[roomId].peers.length > 0 && roomIds[roomId].peers.length < 3) {  //when room with given id is present and the limit to be implemented later
@@ -37,8 +38,8 @@ io.on('connection', (socket) => {
             roomIds[roomId].peers.push(userId)
             // console.log(roomIds)
             // console.log(roomIds[roomId].peers)
-            socket.emit('room_joined', roomId)
-            io.to(roomId).emit('attendee-update', roomIds[roomId].peers.length)
+            io.in(roomId).emit('attendee-update', roomIds[roomId].peers)
+            socket.emit('room_joined', roomId)            
             //socket.emit('presenter-change', currentPresenter)
         } else {  //if the room is full
             console.log(`Can't join room ${roomId}, emitting full_room socket event`)
@@ -47,8 +48,8 @@ io.on('connection', (socket) => {
     })
 
     socket.on('message', (message) => {
-        socket.broadcast.to(message.roomId).emit('message', message)
-        console.log('recieved ' + message.type)
+        socket.broadcast.to(message.roomId).emit('message', message, socket.id)
+        console.log('sending ' + message.type)
     })
 
     socket.on('disconnect', () => {
