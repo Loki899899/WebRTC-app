@@ -1,0 +1,33 @@
+body {
+    text-align: center
+}
+
+#room-selection-container {
+    justify-content: center;
+    display: grid;
+}
+
+#active-users {
+    width: 19.5%;
+}
+
+#active-chat-container {
+    width: 80%;
+}
+
+#chat-room-container {
+    display: flex;
+    height: 70vh;
+}
+
+#messages-container {
+    height: 90%;
+}
+
+#input-message {
+    border-radius: 10px;
+}
+
+.disp-none {
+    display:none !important;
+}
