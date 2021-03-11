@@ -76,9 +76,9 @@ socket.on('attendee-update', (attendees) => {
     users = attendees
     switch(attendees) {
         case 2: 
-            document.getElementById('vid-'+users[1]).setAttribute('class', 'twoVideos')
-            localVideo.setAttribute('class', 'twoVideos')
-            break;
+            // document.getElementById('vid-'+users[1]).setAttribute('class', 'twoVideos')
+            // localVideo.setAttribute('class', 'twoVideos')
+            // break;               ======================NEEDS WORK
         case 3: break;
         default: break;
     }
