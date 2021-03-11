@@ -9,7 +9,7 @@ const express = require('express')
     server = require('https').createServer(options, app)
     io = require('socket.io')(server)
 
-let roomIds = {}    
+let roomIds = {}  
 
 app.use(express.static(__dirname + '/public'))
 
@@ -27,7 +27,7 @@ io.on('connection', (socket) => {
             socket.emit('room_created')
             // console.log(roomIds)
             // console.log(roomIds[roomId].peers)
-            //io.to(roomId).emit('attendee-update', roomIds[roomId])       
+            io.to(roomId).emit('attendee-update', roomIds[roomId].peers.length)       
         } else if (roomIds[roomId].peers.includes(userId)) {
             socket.emit('username-taken')
         }else if (roomIds[roomId].peers.length > 0 && roomIds[roomId].peers.length < 3) {  //when room with given id is present and the limit to be implemented later
@@ -38,12 +38,17 @@ io.on('connection', (socket) => {
             // console.log(roomIds)
             // console.log(roomIds[roomId].peers)
             socket.emit('room_joined', roomId)
-            io.to(roomId).emit('attendee-update', roomIds[roomId])
+            io.to(roomId).emit('attendee-update', roomIds[roomId].peers.length)
             //socket.emit('presenter-change', currentPresenter)
         } else {  //if the room is full
             console.log(`Can't join room ${roomId}, emitting full_room socket event`)
             socket.emit('full_room', roomId)
         }
+    })
+
+    socket.on('message', (message) => {
+        socket.broadcast.to(message.roomId).emit('message', message)
+        console.log('recieved ' + message.type)
     })
 
     socket.on('disconnect', () => {
@@ -62,9 +67,9 @@ io.on('connection', (socket) => {
                     })                                    
                 }
             }
-            // console.log(roomIds)
+            console.log(roomIds)
         })
-        // console.log('disscn')
+        console.log('disscn')
     })
 })
 
