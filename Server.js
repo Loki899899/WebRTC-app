@@ -25,21 +25,21 @@ io.on('connection', (socket) => {
             roomIds[roomId].socketIds.push(socket.id)  
             roomIds[roomId].peers.push(userId)
             console.log(roomIds)
-            io.in(roomId).emit('attendee-update', roomIds[roomId].peers)
+            //io.in(roomId).emit('attendee-update', roomIds[roomId].peers)
             socket.emit('room_created')
             // console.log(roomIds)
             // console.log(roomIds[roomId].peers)            
         } else if (roomIds[roomId].peers.includes(userId)) {
             socket.emit('username-taken')
-        }else if (roomIds[roomId].peers.length > 0 && roomIds[roomId].peers.length < 3) {  //when room with given id is present and the limit to be implemented later
+        }else if (roomIds[roomId].peers.length > 0 && roomIds[roomId].peers.length < 4) {  //when room with given id is present and the limit to be implemented later
             console.log(`room ${roomId} joined by ${userId}`)
             socket.join(roomId)
             roomIds[roomId].socketIds.push(socket.id)
             roomIds[roomId].peers.push(userId)
             // console.log(roomIds)
             // console.log(roomIds[roomId].peers)
-            io.in(roomId).emit('attendee-update', roomIds[roomId].peers)
-            socket.emit('room_joined', roomId)            
+            socket.emit('room_joined', roomId)  
+            io.in(roomId).emit('attendee-update', roomIds[roomId].peers)                      
             //socket.emit('presenter-change', currentPresenter)
         } else {  //if the room is full
             console.log(`Can't join room ${roomId}, emitting full_room socket event`)
@@ -49,7 +49,7 @@ io.on('connection', (socket) => {
 
     socket.on('message', (message) => {
         socket.broadcast.to(message.roomId).emit('message', message, socket.id)
-        console.log('sending ' + message.type)
+        console.log('sending ' + message.type + ' id ' + message.userId)
     })
 
     socket.on('disconnect', () => {

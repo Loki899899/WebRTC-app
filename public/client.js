@@ -9,19 +9,18 @@ socket = io.connect(window.location.origin)
 iceServers = {
     iceServers: [
         { urls: 'stun:stun.l.google.com:19302' },
-        // { urls: 'stun:stun1.l.google.com:19302' },
-        // { urls: 'stun:stun2.l.google.com:19302' },
-        // { urls: 'stun:stun3.l.google.com:19302' },
-        // { urls: 'stun:stun4.l.google.com:19302' },
     ]
 }
 
 
-let userId, roomId, localStream, users, peerConnections,
+let userId, roomId, localStream, users, 
+    targets = [],
+    peers = [],
+    peerConnections = {},
     isAttendee = false
     remoteVidEl = []
-remotevids = {}
-hasDevices = false,
+    remotevids = {}
+    hasDevices = false,
     constraints = {
         audio: false,
         video: {
@@ -39,14 +38,14 @@ connectButton.on('click', () => {
 // SOCKET EVENT CALLBACKS==============================
 socket.on('room_created', () => {
     console.log('room created')
-    checkDevices()
     showChatRoom()
+    getLocalStream()
 })
 
 socket.on('room_joined', () => {
-    console.log('room joined')
-    checkDevices()
+    console.log('room joined')    
     showChatRoom()
+    //getLocalStream()
     //setUpPeers()
 })
 
@@ -57,25 +56,36 @@ socket.on('username-taken', () => {
 socket.on('message', message => {
     switch (message.type) {
         case 'offer':
-            onOffer(message)
+            //console.log(message)
+            if(message.target === userId) {
+                onOffer(message)
+            }
             break;
         case 'answer':
             //console.log('target')
             //console.log(message.target)
             //if(userId === message.target)
-            onAnswer(message)
+            if(message.target === userId) {
+                onAnswer(message)
+            }
             break;
         case 'onicecandidate':
-            //console.log(message)
-            if(peerConnections) {
-                var candidate = new RTCIceCandidate({
-                    sdpMLineIndex: message.label,
-                    candidate: message.candidate,
-                })
-                peerConnections.addIceCandidate(candidate)
-            }
-            else {
-                console.log('no peer')
+            console.log('ice ')
+            console.log(message)
+            console.log(message.target.includes(userId))
+            if(message.target.includes(userId)) {
+                console.log('ice for me')
+                if(peerConnections[message.userId]) {
+                    console.log('adding ice')
+                    var candidate = new RTCIceCandidate({
+                        sdpMLineIndex: message.label,
+                        candidate: message.candidate,
+                    })
+                    peerConnections[message.userId].addIceCandidate(candidate)
+                }
+                else {
+                    console.log('no peer')
+                }
             }
             break;
         default:
@@ -86,6 +96,8 @@ socket.on('message', message => {
 
 socket.on('attendee-update', (attendees) => {
     users = attendees
+    setPeers()
+    //checkDevices()    
     switch (attendees.length) {
         case 2:
             updateViewForTwo()
@@ -99,43 +111,6 @@ socket.on('hangup', (user) => {
 })
 
 // FUNCTIONS===========================================
-// Checks if the user have media devices if yes then get video stream
-function checkDevices() {
-    if (navigator.mediaDevices.getUserMedia) {
-        navigator.mediaDevices.getUserMedia(constraints)
-            .then(stream => {
-                localStream = stream
-                localVideo.srcObject = stream
-                peerConnections = new RTCPeerConnection(iceServers)
-                localStream.getTracks().forEach((track) => {
-                    peerConnections.addTrack(track, localStream)
-                })
-                peerConnections.onicecandidate = sendIceCandidate
-                peerConnections.ontrack = setRemoteStream
-                //console.log(localStream)                       
-            }).catch(() => {
-                console.log('couldnt get media Devices')
-            })
-            .then(() => {
-                console.log(users.length)
-                if(users.length===2) {
-                    console.log('now  send')
-                    console.log(`${users[users.length-1]} and ${userId}`)
-                    if(users[users.length-1] === userId) {
-                        console.log('i sent it')
-                        sendOffer()
-                    }                    
-                } else if(users.length>2) {
-                    console.log('its big')
-                    if(users[users.length-1] != userId) {
-                        sendOffer()
-                    }
-                }
-            });
-    } else {
-        alert('Browser doesnt support WebRTC')
-    }
-}
 
 // function to validate inputs and let server know someone has joined
 function joinRoom() {
@@ -155,19 +130,21 @@ function showChatRoom() {
 }
 
 function onAnswer(message) {
-    console.log('recieved answer')
-    //console.log(message.target)
-    //console.log(userId)    
-    peerConnections.setRemoteDescription(new RTCSessionDescription(message.sdp))
-    //console.log(peerConnections)
+    //console.log('i recieved my id - '+userId + ' was for ' + message.target + 'and by ' + message.userId)
+    //console.log(message.sdp)
+    peerConnections[message.userId].setRemoteDescription(message.sdp)
 }
 
 function sendIceCandidate(event) {
-    //console.log(event)
+    //console.log('this happened' + event)
+    //console.log(message)
+    console.log('sending to ' + target)
     if (event.candidate) {
         //console.log('this')
         socket.emit('message', {
+            userId,
             roomId,
+            target: target,
             type: 'onicecandidate',
             label: event.candidate.sdpMLineIndex,
             candidate: event.candidate.candidate,
@@ -190,11 +167,13 @@ function updateViewForTwo() {
 }
 
 function sendOffer() {
-    peerConnections.createOffer()
+    peerConnection.createOffer()
         .then((offer) => {
-            peerConnections.setLocalDescription(new RTCSessionDescription(offer))
+            console.log('sending to '+ users[users.length-1])
+            peerConnection.setLocalDescription(new RTCSessionDescription(offer))
             socket.emit('message', {
                 userId: userId,
+                target: users[users.length - 1],
                 roomId: roomId,
                 type: 'offer',
                 sdp: offer,
@@ -205,18 +184,50 @@ function sendOffer() {
 }
 
 function onOffer(message) {
+    //console.log(message)
     console.log('offer recvd')
-    peerConnections = new RTCPeerConnection(iceServers)
+    getLocalStream(message, true)    
+}
+
+function getLocalStream(message, createAnswer = false) {
+    if(navigator.mediaDevices.getUserMedia) {
+        navigator.mediaDevices.getUserMedia(constraints)
+        .then((stream) => {
+            localStream = stream
+            localVideo.srcObject = stream
+            console.log('got local stream')
+        })
+        .then(() => {
+            if(createAnswer) {
+                sendAnswer(message)
+            }
+        })
+    }
+}
+
+function addLocalTracks(peerConnection) {
     localStream.getTracks().forEach((track) => {
-        peerConnections.addTrack(track, localStream)
+        peerConnection.addTrack(track, localStream)
     })
-    peerConnections.onicecandidate = sendIceCandidate
-    peerConnections.ontrack = setRemoteStream
-    peerConnections.setRemoteDescription(new RTCSessionDescription(message.sdp))
-    peerConnections.createAnswer()
+}
+
+function sendAnswer(message) {
+    console.log('setting target here ')
+    console.log(message)
+    target = users.slice(0,users.length - 1)
+    console.log('target ' + target)
+    peerConnections[message.userId] = new RTCPeerConnection(iceServers)
+    peerConnection = peerConnections[message.userId]
+    //console.log(peerConnections)
+    addLocalTracks(peerConnection)
+    peerConnections[message.userId].onicecandidate = sendIceCandidate
+    peerConnections[message.userId].ontrack = setRemoteStream
+    peerConnections[message.userId].setRemoteDescription(new RTCSessionDescription(message.sdp))
+    peerConnections[message.userId].createAnswer()
         .then((answer) => {
             console.log('sending answer')
-            peerConnections.setLocalDescription(answer)
+            console.log(answer)
+            peerConnections[message.userId].setLocalDescription(answer)
             socket.emit('message', {
                 userId: userId,
                 target: message.userId,
@@ -225,4 +236,19 @@ function onOffer(message) {
                 sdp: answer
             })
         })
+}
+
+function setPeers() {    
+    if (users[users.length - 1] != userId) {
+        console.log('settings up peers')
+        target = users.slice(0,users.length - 1)
+        console.log('target' + targets)
+        console.log(users)
+        peerConnections[users[users.length - 1]] = new RTCPeerConnection(iceServers)
+        peerConnection = peerConnections[users[users.length - 1]]
+        addLocalTracks(peerConnection)
+        peerConnection.onicecandidate = sendIceCandidate
+        peerConnection.ontrack = setRemoteStream
+        sendOffer()
+    }
 }
