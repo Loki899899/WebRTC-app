@@ -20,14 +20,20 @@ body {
     height: 70vh;
 }
 
-#messages-container {
+#chat-container {
     height: 90%;
 }
 
-.twoVideos {
-    width: 10%;
-    height: 14%;
+#video-container {
+
 }
+
+.small-local-video {
+    position: absolute;
+    height: 8vw;
+    width: 8vw;
+}
+
 
 #input-message {
     border-radius: 10px;

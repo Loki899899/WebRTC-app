@@ -58,7 +58,7 @@ io.on('connection', (socket) => {
                 if(roomIds[key].socketIds.length === 1) {
                     delete roomIds[key]
                 } else {
-                    io.to(key).emit('hangup', roomIds[key].peers[roomIds[key].socketIds.indexOf(socket.id)])
+                    io.to(key).emit('hangup', roomIds[key].peers[roomIds[key].socketIds.indexOf(socket.id)], roomIds[key].peers.length - 1)
                     //console.log(roomIds)
                     roomIds[key].peers = roomIds[key].peers.filter((peer) => {
                         return peer!=roomIds[key].peers[roomIds[key].socketIds.indexOf(socket.id)]

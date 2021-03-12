@@ -4,7 +4,7 @@ introPage = $('#room-selection-container')
 chatRoom = $('#chat-room-container')
 connectButton = $('#connect-button')
 localVideo = document.getElementById('local-video')
-videoContainer = document.getElementById('messages-container')
+videoContainer = document.getElementById('video-container')
 socket = io.connect(window.location.origin)
 iceServers = {
     iceServers: [
@@ -24,8 +24,8 @@ let userId, roomId, localStream, users,
     constraints = {
         audio: false,
         video: {
-            'width': window.screen.availHeight/2,
-            'height': window.screen.availHeight/2
+            'width': 480,//window.screen.availHeight/2,
+            'height': 480//window.screen.availHeight/2
         }//true
     }
 
@@ -97,17 +97,21 @@ socket.on('message', message => {
 socket.on('attendee-update', (attendees) => {
     users = attendees
     setPeers()
-    //checkDevices()    
-    switch (attendees.length) {
-        case 2:
-            updateViewForTwo()
-        case 3: break;
-        default: break;
+    //checkDevices()
+    if(attendees.length>1) {
+        updateViewForTwo()
     }
 })
 
-socket.on('hangup', (user) => {
+socket.on('hangup', (user, attendees) => {
     console.log(user + ' left')
+    remoteVidEl[user].remove()
+    console.log(attendees)
+    if(attendees === 1) {
+        console.log(localVideo.classList.contains('small-local-video'))
+        localVideo.classList.remove('small-local-video')
+    }
+    
 })
 
 // FUNCTIONS===========================================
@@ -152,18 +156,21 @@ function sendIceCandidate(event) {
     }
 }
 
-function setRemoteStream(message) {
-    remotevids[users] = message.streams[0].id
+function setRemoteStream(message, user) {
+    remotevids[user] = message.streams[0].id
     console.log('creating remote vid')
-    remoteVidEl[users] = document.createElement('video')
-    remoteVidEl[users].srcObject = message.streams[0]
-    videoContainer.appendChild(remoteVidEl[users])
-    remoteVidEl[users].setAttribute('id', 'vid-' + message.streams[0].id)
-    remoteVidEl[users].setAttribute('autoplay', 'autoplay')
+    console.log(target[target.length - 1])
+    remoteVidEl[user] = document.createElement('video')
+    remoteVidEl[user].srcObject = message.streams[0]
+    videoContainer.appendChild(remoteVidEl[user])
+    remoteVidEl[user].setAttribute('id', 'vid-' + user)
+    remoteVidEl[user].setAttribute('width', '480')
+    remoteVidEl[user].setAttribute('height', '480')
+    remoteVidEl[user].setAttribute('autoplay', 'autoplay')
 }
 
 function updateViewForTwo() {
-    localVideo.setAttribute('class', 'twoVideos')
+    localVideo.setAttribute('class', 'small-local-video')
 }
 
 function sendOffer() {
@@ -186,7 +193,7 @@ function sendOffer() {
 function onOffer(message) {
     //console.log(message)
     console.log('offer recvd')
-    getLocalStream(message, true)    
+    getLocalStream(message, true)
 }
 
 function getLocalStream(message, createAnswer = false) {
@@ -221,7 +228,9 @@ function sendAnswer(message) {
     //console.log(peerConnections)
     addLocalTracks(peerConnection)
     peerConnections[message.userId].onicecandidate = sendIceCandidate
-    peerConnections[message.userId].ontrack = setRemoteStream
+    peerConnections[message.userId].ontrack = (event) => {
+        setRemoteStream(event, message.userId)
+    }
     peerConnections[message.userId].setRemoteDescription(new RTCSessionDescription(message.sdp))
     peerConnections[message.userId].createAnswer()
         .then((answer) => {
@@ -248,7 +257,9 @@ function setPeers() {
         peerConnection = peerConnections[users[users.length - 1]]
         addLocalTracks(peerConnection)
         peerConnection.onicecandidate = sendIceCandidate
-        peerConnection.ontrack = setRemoteStream
+        peerConnection.ontrack = (event) => {
+            setRemoteStream(event, users[users.length - 1])
+        }
         sendOffer()
     }
 }
