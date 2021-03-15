@@ -177,7 +177,6 @@ function sendOffer() {
         .then((offer) => {
             console.log('sending to '+ users[users.length-1])
             peerConnections[users[users.length-1]].setLocalDescription(new RTCSessionDescription(offer))
-            peer
             socket.emit('message', {
                 userId: userId,
                 target: users[users.length - 1],
