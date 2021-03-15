@@ -70,7 +70,7 @@ socket.on('message', message => {
             console.log('ice ')
             //console.log(message)
              //console.log(message.target.includes(userId))
-            if(!message.candidate) {
+            if(message.candidate) {
                 console.log('null here')
             }
             if(message.target.includes(userId)) {
