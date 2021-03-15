@@ -142,6 +142,7 @@ function sendIceCandidate(event) {
     //console.log('this happened' + event)
     //console.log(message)
     console.log('sending to ' + target)
+    console.log(event.candidate.candidate)
     if (event.candidate) {
         //console.log('this')
         socket.emit('message', {
