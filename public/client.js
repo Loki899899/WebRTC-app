@@ -14,7 +14,8 @@ iceServers = {
             username: "lokeshsingh899@gmail.com",
             credential: "Lokesh@numb899"
         },
-    ]
+    ],
+    iceTransportPolicy: "all"
 }
 
 let userId, roomId, localStream, users,
