@@ -73,8 +73,8 @@ socket.on('message', message => {
             // if(message.target.includes(userId)) {
             //     console.log('ice for me')
                 if(peerConnections[message.userId]) {
-                    console.log('adding ice')
-                    console.log(message)
+                    //console.log('adding ice')
+                    //console.log(message)
                     console.log('ICE state: ',peerConnections[message.userId].iceConnectionState)
                     var candidate = new RTCIceCandidate({
                         sdpMLineIndex: message.label,
@@ -103,9 +103,9 @@ socket.on('attendee-update', (attendees) => {
 })
 
 socket.on('hangup', (user, attendees) => {
-    console.log(user + ' left')
+    //console.log(user + ' left')
     remoteVidEl[user].remove()
-    console.log(attendees)
+    //console.log(attendees)
     if(attendees === 1) {
         //console.log(localVideo.classList.contains('small-local-video'))
         localVideo.classList.remove('small-local-video')
@@ -158,8 +158,8 @@ function sendIceCandidate(event) {
 
 function setRemoteStream(message, user) {
     remotevids[user] = message.streams[0].id
-    console.log('creating remote vid')
-    console.log(target[target.length - 1])
+    //console.log('creating remote vid')
+    //console.log(target[target.length - 1])
     remoteVidEl[user] = document.createElement('video')
     remoteVidEl[user].srcObject = message.streams[0]
     videoContainer.appendChild(remoteVidEl[user])
@@ -187,7 +187,7 @@ function sendOffer() {
             })
         })
         .catch(console.log('erroe'))
-    console.log('offer sent')
+    //console.log('offer sent')
 }
 
 function onOffer(message) {
@@ -202,7 +202,7 @@ function getLocalStream(message, createAnswer = false) {
         .then((stream) => {
             localStream = stream
             localVideo.srcObject = stream
-            console.log('got local stream')
+            //console.log('got local stream')
         })
         .then(() => {
             if(createAnswer) {
@@ -219,10 +219,10 @@ function addLocalTracks(peerConnection) {
 }
 
 function sendAnswer(message) {
-    console.log('setting target here ')
-    console.log(message)
+   // console.log('setting target here ')
+    //console.log(message)
     target = users.slice(0,users.length - 1)
-    console.log('target ' + target)
+    //console.log('target ' + target)
     peerConnections[message.userId] = new RTCPeerConnection(iceServers)
     peerConnection = peerConnections[message.userId]
     //console.log(peerConnections)
@@ -237,7 +237,7 @@ function sendAnswer(message) {
     peerConnections[message.userId].setRemoteDescription(new RTCSessionDescription(message.sdp))
     peerConnections[message.userId].createAnswer()
         .then((answer) => {
-            console.log('sending answer')
+            //console.log('sending answer')
             //console.log(answer)
             peerConnections[message.userId].setLocalDescription(answer)
             socket.emit('message', {
@@ -252,17 +252,17 @@ function sendAnswer(message) {
 
 function setPeers() {    
     if (users[users.length - 1] != userId) {
-        console.log('settings up peers')
-        console.log(users.slice(users.length - 1, users.length))
+        //console.log('settings up peers')
+        //console.log(users.slice(users.length - 1, users.length))
         target = users.slice(users.length - 1, users.length)
-        console.log('target' + target)
+        //console.log('target' + target)
         //console.log(users)
         peerConnections[users[users.length - 1]] = new RTCPeerConnection(iceServers)
         peerConnection = peerConnections[users[users.length - 1]]
         addLocalTracks(peerConnection)
         peerConnection.onicecandidate = sendIceCandidate
         peerConnection.oniceconnectionstatechange = function(){
-            console.log('ICE state: ',peerConnection.iceConnectionState);
+            //console.log('ICE state: ',peerConnection.iceConnectionState);
          }
         peerConnection.ontrack = (event) => {
             setRemoteStream(event, users[users.length - 1])
