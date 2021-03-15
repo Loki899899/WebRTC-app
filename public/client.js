@@ -70,20 +70,18 @@ socket.on('message', message => {
             console.log('ice ')
             //console.log(message)
              //console.log(message.target.includes(userId))
-            if(message.candidate) {
-                console.log('null here')
-            }
             if(message.target.includes(userId)) {
             //     console.log('ice for me')
                 if(peerConnections[message.userId]) {
                     console.log('got ice')
                     console.log(message.candidate)
-                    console.log('ICE state: ',peerConnections[message.userId].iceConnectionState)
+                    //console.log('ICE state: ',peerConnections[message.userId].iceConnectionState)
                     var candidate = new RTCIceCandidate({
                         sdpMLineIndex: message.label,
                         candidate: message.candidate,
                     })
                     peerConnections[message.userId].addIceCandidate(candidate)
+                    console.log('ICE state: ',peerConnections[message.userId].iceConnectionState)
                 }
                 else {
                     console.log('no peer')
