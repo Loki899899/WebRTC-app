@@ -13,7 +13,8 @@ iceServers = {
 }
 
 
-let userId, roomId, localStream, users, 
+let userId, roomId, localStream, users,
+    count = 0,
     targets = [],
     peers = [],
     peerConnections = {},
