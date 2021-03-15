@@ -4,7 +4,7 @@
   "description": "A WebRTC App to learn webrtc",
   "main": "Server.js",
   "scripts": {
-    "start": "node Server.js",
+    "star": "node Server.js",
     "test": "can be added"
   },
   "repository": {
