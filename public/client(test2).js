@@ -8,7 +8,14 @@ videoContainer = document.getElementById('video-container')
 socket = io()
 iceServers = {
     iceServers: [
-        { urls: 'stun:stun.l.google.com:19302' },
+        { 
+            urls: 'stun:stun.l.google.com:19302'
+        },
+        {
+            urls: "numb.viagenie.ca",
+            username: "lokeshsingh899@gmail.com",
+            credential: "Lokesh@numb899"
+        },
     ]
 }
 
@@ -76,12 +83,12 @@ socket.on('message', message => {
                     })
                     peerConnections[message.userId].addIceCandidate(candidate)
                     console.log('ICE state: ',peerConnections[message.userId].iceConnectionState)
-                    count += 1
-                    console.log(count)
-                    if(count === 4 && peerConnections[message.userId].iceConnectionState === 'new') {
-                        console.log('restarting')
-                        peerConnections[message.userId].restartIce()
-                    }
+                    // count += 1
+                    // console.log(count)
+                    // if(count === 4 && peerConnections[message.userId].iceConnectionState === 'new') {
+                    //     console.log('restarting')
+                    //     peerConnections[message.userId].restartIce()
+                    // }
                 }
                 else {
                     console.log('no peer')
