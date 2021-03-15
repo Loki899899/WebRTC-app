@@ -69,11 +69,12 @@ socket.on('message', message => {
         case 'onicecandidate':
             console.log('ice ')
             //console.log(message)
-             console.log(message.target.includes(userId))
+             //console.log(message.target.includes(userId))
             // if(message.target.includes(userId)) {
             //     console.log('ice for me')
                 if(peerConnections[message.userId]) {
                     console.log('adding ice')
+                    console.log(message)
                     console.log('ICE state: ',peerConnections[message.userId].iceConnectionState)
                     var candidate = new RTCIceCandidate({
                         sdpMLineIndex: message.label,
@@ -172,10 +173,11 @@ function updateView() {
 }
 
 function sendOffer() {
-    peerConnection.createOffer()
+    peerConnections[users[users.length-1]].createOffer()
         .then((offer) => {
             console.log('sending to '+ users[users.length-1])
-            peerConnection.setLocalDescription(new RTCSessionDescription(offer))
+            peerConnections[users[users.length-1]].setLocalDescription(new RTCSessionDescription(offer))
+            peer
             socket.emit('message', {
                 userId: userId,
                 target: users[users.length - 1],
