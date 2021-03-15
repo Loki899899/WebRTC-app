@@ -8,9 +8,9 @@ videoContainer = document.getElementById('video-container')
 socket = io()
 iceServers = {
     iceServers: [
-        { 
-            urls: 'stun:stun.l.google.com:19302'
-        },
+        // { 
+        //     urls: 'stun:stun.l.google.com:19302'
+        // },
         {
             urls: "numb.viagenie.ca",
             username: "lokeshsingh899@gmail.com",
