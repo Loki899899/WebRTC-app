@@ -74,6 +74,7 @@ socket.on('message', message => {
             //     console.log('ice for me')
                 if(peerConnections[message.userId]) {
                     console.log('adding ice')
+                    console.log(message)
                     console.log('ICE state: ',peerConnections[message.userId].iceConnectionState)
                     var candidate = new RTCIceCandidate({
                         sdpMLineIndex: message.label,
