@@ -12,6 +12,7 @@ iceServers = {
     ]
 }
 
+
 let userId, roomId, localStream, users,
     count = 0,
     targets = [],
@@ -33,6 +34,7 @@ let userId, roomId, localStream, users,
 connectButton.on('click', () => {
     joinRoom()
 })
+
 
 // SOCKET EVENT CALLBACKS==============================
 socket.on('room_created', () => {
@@ -77,7 +79,7 @@ socket.on('message', message => {
                     count += 1
                     if(count === 4 && peerConnections[message.userId].iceConnectionState === 'new') {
                         console.log('restarting')
-                        sendOffer(peerConnections[message.userId])
+                        peerConnections[message.userId].restartIce()
                     }
                 }
                 else {
@@ -127,7 +129,6 @@ function showChatRoom() {
 }
 
 function onAnswer(message) {
-    console.log('got answer')
     peerConnections[message.userId].setRemoteDescription(message.sdp)
 }
 
@@ -161,11 +162,11 @@ function updateView() {
     localVideo.setAttribute('class', 'small-local-video')
 }
 
-function sendOffer(peerConnection) {
-    peerConnection.createOffer()
+function sendOffer() {
+    peerConnections[users[users.length-1]].createOffer()
         .then((offer) => {
             console.log('sending to '+ users[users.length-1])
-            peerConnection.setLocalDescription(new RTCSessionDescription(offer))
+            peerConnections[users[users.length-1]].setLocalDescription(new RTCSessionDescription(offer))
             socket.emit('message', {
                 userId: userId,
                 target: users[users.length - 1],
@@ -204,21 +205,21 @@ function addLocalTracks(peerConnection) {
 
 function sendAnswer(message) {
     target = users.slice(0, users.length - 1)
-    const peerConnection = new RTCPeerConnection(iceServers)
-    peerConnections[message.userId] = peerConnection
+    peerConnections[message.userId] = new RTCPeerConnection(iceServers)
+    peerConnection = peerConnections[message.userId]
     addLocalTracks(peerConnection)
-    peerConnection.onicecandidate = sendIceCandidate
+    peerConnections[message.userId].onicecandidate = sendIceCandidate
     // peerConnection.oniceconnectionstatechange = function(){
     //     console.log('ICE state: ',peerConnections[message.userId].iceConnectionState)
     //  }
-    peerConnection.ontrack = (event) => {
+    peerConnections[message.userId].ontrack = (event) => {
         setRemoteStream(event, message.userId)
     }
-    peerConnection.setRemoteDescription(new RTCSessionDescription(message.sdp))
+    peerConnections[message.userId].setRemoteDescription(new RTCSessionDescription(message.sdp))
         .then(() => {
-            peerConnection.createAnswer()
+            peerConnections[message.userId].createAnswer()
             .then((answer) => {
-                peerConnection.setLocalDescription(answer)
+                peerConnections[message.userId].setLocalDescription(answer)
                 socket.emit('message', {
                     userId: userId,
                     target: message.userId,
@@ -226,7 +227,6 @@ function sendAnswer(message) {
                     type: 'answer',
                     sdp: answer
                 })
-                console.log('sent ans')
             })
         })
 }
@@ -234,13 +234,16 @@ function sendAnswer(message) {
 function setPeers() {    
     if (users[users.length - 1] != userId) {
         target = users.slice(users.length - 1, users.length)
-        const peerConnection = new RTCPeerConnection(iceServers)
-        peerConnections[users[users.length - 1]] = peerConnection
+        peerConnections[users[users.length - 1]] = new RTCPeerConnection(iceServers)
+        peerConnection = peerConnections[users[users.length - 1]]
         addLocalTracks(peerConnection)
         peerConnection.onicecandidate = sendIceCandidate
+        // peerConnection.oniceconnectionstatechange = function(){
+        //     console.log('ICE state: ',peerConnection.iceConnectionState);
+        //  }
         peerConnection.ontrack = (event) => {
             setRemoteStream(event, users[users.length - 1])
         }
-        sendOffer(peerConnection)
+        sendOffer()
     }
 }

@@ -6,7 +6,7 @@ const express = require('express')
         key:fs.readFileSync('key.pem'),
         cert:fs.readFileSync('cert.pem'),
     }
-    server = require('http').createServer(app)
+    server = require('https').createServer(options, app)
     io = require('socket.io')(server)
 
 let roomIds = {}  
@@ -25,10 +25,7 @@ io.on('connection', (socket) => {
             roomIds[roomId].socketIds.push(socket.id)  
             roomIds[roomId].peers.push(userId)
             console.log(roomIds)
-            //io.in(roomId).emit('attendee-update', roomIds[roomId].peers)
-            socket.emit('room_created')
-            // console.log(roomIds)
-            // console.log(roomIds[roomId].peers)            
+            socket.emit('room_created')           
         } else if (roomIds[roomId].peers.includes(userId)) {
             socket.emit('username-taken')
         }else if (roomIds[roomId].peers.length > 0 && roomIds[roomId].peers.length < 4) {  //when room with given id is present and the limit to be implemented later
