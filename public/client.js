@@ -8,7 +8,7 @@ videoContainer = document.getElementById('video-container')
 socket = io()
 iceServers = {
     iceServers: [
-        //{ urls: 'stun:stun.l.google.com:19302' },
+        { urls: 'stun:stun.l.google.com:19302' },
         {
             urls: "turn:numb.viagenie.ca:3478",
             username: "lokeshsingh899@gmail.com",
@@ -138,6 +138,7 @@ function onAnswer(message) {
 
 function sendIceCandidate(event) {
     console.log('sending to ' + target)
+    console.log(event)
     if (event.candidate) {
         console.log(event.candidate.candidate)
         socket.emit('message', {
