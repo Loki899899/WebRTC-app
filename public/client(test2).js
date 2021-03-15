@@ -77,6 +77,7 @@ socket.on('message', message => {
                     peerConnections[message.userId].addIceCandidate(candidate)
                     console.log('ICE state: ',peerConnections[message.userId].iceConnectionState)
                     count += 1
+                    console.log(count)
                     if(count === 4 && peerConnections[message.userId].iceConnectionState === 'new') {
                         console.log('restarting')
                         peerConnections[message.userId].restartIce()
