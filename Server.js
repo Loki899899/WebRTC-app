@@ -6,7 +6,7 @@ const express = require('express')
         key:fs.readFileSync('key.pem'),
         cert:fs.readFileSync('cert.pem'),
     }
-    server = require('https').createServer(options, app)
+    server = require('http').createServer(app)
     io = require('socket.io')(server)
 
 let roomIds = {}  
