@@ -10,7 +10,7 @@ iceServers = {
     iceServers: [
         { urls: 'stun:stun.l.google.com:19302' },
         {
-            urls: "stun:numb.viagenie.ca:3478",
+            urls: "turn:numb.viagenie.ca:3478",
             username: "lokeshsingh899@gmail.com",
             credential: "Lokesh@numb899"
         },
