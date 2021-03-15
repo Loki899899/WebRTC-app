@@ -5,7 +5,6 @@
   "main": "Server.js",
   "scripts": {
     "start": "npx nodemon Server.js",
-    "heroku": "npx heroku run -a webrtc-app-loki && npx heroku logs --tail -a webrtc-app-loki",
     "test": "can be added"
   },
   "repository": {
