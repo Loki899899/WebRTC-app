@@ -226,33 +226,35 @@ function addLocalTracks(peerConnection) {
 }
 
 function sendAnswer(message) {
-   // console.log('setting target here ')
+    // console.log('setting target here ')
     //console.log(message)
-    target = users.slice(0,users.length - 1)
+    target = users.slice(0, users.length - 1)
     //console.log('target ' + target)
     peerConnections[message.userId] = new RTCPeerConnection(iceServers)
     peerConnection = peerConnections[message.userId]
     //console.log(peerConnections)
     addLocalTracks(peerConnection)
     peerConnections[message.userId].onicecandidate = sendIceCandidate
-    peerConnection.oniceconnectionstatechange = function(){
-        console.log('ICE state: ',peerConnections[message.userId].iceConnectionState)
-     }
+    // peerConnection.oniceconnectionstatechange = function(){
+    //     console.log('ICE state: ',peerConnections[message.userId].iceConnectionState)
+    //  }
     peerConnections[message.userId].ontrack = (event) => {
         setRemoteStream(event, message.userId)
     }
     peerConnections[message.userId].setRemoteDescription(new RTCSessionDescription(message.sdp))
-    peerConnections[message.userId].createAnswer()
-        .then((answer) => {
-            //console.log('sending answer')
-            //console.log(answer)
-            peerConnections[message.userId].setLocalDescription(answer)
-            socket.emit('message', {
-                userId: userId,
-                target: message.userId,
-                roomId: roomId,
-                type: 'answer',
-                sdp: answer
+        .then(() => {
+            peerConnections[message.userId].createAnswer()
+            .then((answer) => {
+                //console.log('sending answer')
+                //console.log(answer)
+                peerConnections[message.userId].setLocalDescription(answer)
+                socket.emit('message', {
+                    userId: userId,
+                    target: message.userId,
+                    roomId: roomId,
+                    type: 'answer',
+                    sdp: answer
+                })
             })
         })
 }

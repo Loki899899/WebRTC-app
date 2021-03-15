@@ -1,12 +1,12 @@
 const express = require('express')
     fs = require('fs')
     app = express()
-    port = process.env.PORT || 8080
+    port = process.env.PORT || 3000
     options = {
         key:fs.readFileSync('key.pem'),
         cert:fs.readFileSync('cert.pem'),
     }
-    server = require('http').createServer(app)
+    server = require('https').createServer(options, app)
     io = require('socket.io')(server)
 
 let roomIds = {}  
