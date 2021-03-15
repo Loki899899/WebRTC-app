@@ -74,7 +74,7 @@ socket.on('message', message => {
             //     console.log('ice for me')
                 if(peerConnections[message.userId]) {
                     console.log('got ice')
-                    console.log(message)
+                    console.log(message.candidate)
                     console.log('ICE state: ',peerConnections[message.userId].iceConnectionState)
                     var candidate = new RTCIceCandidate({
                         sdpMLineIndex: message.label,
@@ -142,8 +142,8 @@ function sendIceCandidate(event) {
     //console.log('this happened' + event)
     //console.log(message)
     console.log('sending to ' + target)
-    console.log(event.candidate.candidate)
     if (event.candidate) {
+        console.log(event.candidate.candidate)
         //console.log('this')
         socket.emit('message', {
             userId,
