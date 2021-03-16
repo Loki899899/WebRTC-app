@@ -294,7 +294,7 @@ function sendAnswer(message) {
 }
 
 function addIce(user) {
-    candidates[user].forEach((candidate) => {
+    candidates[message.userId].forEach((candidate) => {
         peerConnection.addIceCandidate(candidate)
             .catch((err) => {
                 console.log('cannot add ice ' + err)
