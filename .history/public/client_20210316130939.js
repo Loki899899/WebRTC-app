@@ -252,11 +252,11 @@ function sendAnswer(message) {
     }
     peerConnection.setRemoteDescription(new RTCSessionDescription(message.sdp))
         .then(() => {
+            candidates[message.userId].forEach((candidate) => {
+                peerConnection.addIceCandidate(candidate)
+            })
             peerConnection.createAnswer()
             .then((answer) => {
-                candidates[message.userId].forEach((candidate) => {
-                    peerConnection.addIceCandidate(candidate)
-                })
                 peerConnection.setLocalDescription(answer)
                 socket.emit('message', {
                     userId: userId,

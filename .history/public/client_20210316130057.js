@@ -82,7 +82,6 @@ socket.on('message', message => {
                         sdpMLineIndex: message.label,
                         candidate: message.candidate,
                     })
-                    // peerConnections[message.userId].addIceCandidate(candidate)
                     if(isInitiator) {
                         peerConnections[message.userId].addIceCandidate(candidate)
                     } else {
@@ -195,20 +194,13 @@ function updateView() {
     localVideo.setAttribute('class', 'small-local-video')
 }
 
-function sendOffer(peerConnection) {
+function createAnOffer(peerConnection) {
     isInitiator = true
     peerConnection.createOffer()
         .then((offer) => {
             console.log('offer created')
             console.log('sending to '+ users[users.length-1])
             peerConnection.setLocalDescription(new RTCSessionDescription(offer))
-            socket.emit('message', {
-                userId: userId,
-                target: users[users.length - 1],
-                roomId: roomId,
-                type: 'offer',
-                sdp: offer,
-            })
         })
 }
 
@@ -252,11 +244,11 @@ function sendAnswer(message) {
     }
     peerConnection.setRemoteDescription(new RTCSessionDescription(message.sdp))
         .then(() => {
+            candidates[message.userId].forEach((candidate) => {
+                peerConnection.addIceCandidate(candidate)
+            })
             peerConnection.createAnswer()
             .then((answer) => {
-                candidates[message.userId].forEach((candidate) => {
-                    peerConnection.addIceCandidate(candidate)
-                })
                 peerConnection.setLocalDescription(answer)
                 socket.emit('message', {
                     userId: userId,
@@ -291,11 +283,18 @@ function setPeers() {
             //console.log(peerConnections[users[users.length - 1]].iceGatheringState)
             if(peerConnections[users[users.length - 1]].iceGatheringState == 'complete') {
                 console.log('completed gathering')
+                socket.emit('message', {
+                    userId: userId,
+                    target: users[users.length - 1],
+                    roomId: roomId,
+                    type: 'offer',
+                    sdp: offer,
+                })
             }
         }
         peerConnection.ontrack = (event) => {
             setRemoteStream(event, users[users.length - 1])
         }
-        sendOffer(peerConnection)
+        createAnOffer(peerConnection)
     }
 }

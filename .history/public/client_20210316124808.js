@@ -82,7 +82,6 @@ socket.on('message', message => {
                         sdpMLineIndex: message.label,
                         candidate: message.candidate,
                     })
-                    // peerConnections[message.userId].addIceCandidate(candidate)
                     if(isInitiator) {
                         peerConnections[message.userId].addIceCandidate(candidate)
                     } else {
@@ -252,11 +251,11 @@ function sendAnswer(message) {
     }
     peerConnection.setRemoteDescription(new RTCSessionDescription(message.sdp))
         .then(() => {
+            candidates[message.userId].forEach((candidate) => {
+                peerConnection.addIceCandidate(candidate)
+            })
             peerConnection.createAnswer()
             .then((answer) => {
-                candidates[message.userId].forEach((candidate) => {
-                    peerConnection.addIceCandidate(candidate)
-                })
                 peerConnection.setLocalDescription(answer)
                 socket.emit('message', {
                     userId: userId,
@@ -270,9 +269,8 @@ function sendAnswer(message) {
         })
 }
 
-function checkIceState() {
-    console.log(peerConnections[users[users.length - 1]].iceGatheringState)
-    if(peerConnections[users[users.length - 1]].iceGatheringState == 'complete') {
+function checkIceState(ev) {
+    if(ev.target.iceGatheringState == 'complete') {
         console.log('completed gathering')
     }
 }
@@ -287,12 +285,7 @@ function setPeers() {
         // peerConnection.oniceconnectionstatechange = function(){
         //     console.log('ICE state: ',peerConnection.iceConnectionState)
         // }
-        peerConnection.onicegatheringstatechange = () => {
-            //console.log(peerConnections[users[users.length - 1]].iceGatheringState)
-            if(peerConnections[users[users.length - 1]].iceGatheringState == 'complete') {
-                console.log('completed gathering')
-            }
-        }
+        peerConnection.onicegatheringstatechange = checkIceState()
         peerConnection.ontrack = (event) => {
             setRemoteStream(event, users[users.length - 1])
         }

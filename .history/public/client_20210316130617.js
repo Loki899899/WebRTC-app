@@ -82,15 +82,18 @@ socket.on('message', message => {
                         sdpMLineIndex: message.label,
                         candidate: message.candidate,
                     })
-                    // peerConnections[message.userId].addIceCandidate(candidate)
-                    if(isInitiator) {
-                        peerConnections[message.userId].addIceCandidate(candidate)
-                    } else {
-                        if(!candidates[message.userId]) {
-                            candidates[message.userId] = []
-                        }
-                        candidates[message.userId].push(candidate)
-                    }
+                    peerConnections[message.userId].addIceCandidate(candidate)
+                    // if(isInitiator) {
+                    //     peerConnections[message.userId].addIceCandidate(candidate)
+                    // } else {
+                    //     if(!candidates[message.userId]) {
+                    //         candidates[message.userId] = []
+                    //     }
+                    //     candidates[message.userId].push(candidate)
+                    //     candidates[message.userId].forEach((candidate) => {
+                    //         peerConnection.addIceCandidate(candidate)
+                    //     })
+                    // }
                     // peerConnections[message.userId].addIceCandidate(candidate)
                     //console.log('ICE state: ',peerConnections[message.userId].iceConnectionState)
                     // count += 1
@@ -254,9 +257,6 @@ function sendAnswer(message) {
         .then(() => {
             peerConnection.createAnswer()
             .then((answer) => {
-                candidates[message.userId].forEach((candidate) => {
-                    peerConnection.addIceCandidate(candidate)
-                })
                 peerConnection.setLocalDescription(answer)
                 socket.emit('message', {
                     userId: userId,
