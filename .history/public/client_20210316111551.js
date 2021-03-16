@@ -149,13 +149,7 @@ function onAnswer(message) {
 }
 
 function setCandidates() {
-    if(count != 4) {
-        setTimeout(setCandidates, 200)
-    } else {
-        candidates[message.userId].forEach((candidate) => {
-            peerConnection.addIceCandidate(candidate)
-        })
-    }
+    if()
 }
 
 function sendIceCandidate(event) {
