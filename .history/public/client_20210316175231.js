@@ -21,7 +21,6 @@ iceServers = {
 }
 
 let userId, roomId, localStream, users,
-    menuOpen = false
     count = 0,
     targets = [],
     candidates = {},
@@ -45,14 +44,14 @@ connectButton.on('click', () => {
 })
 
 menuButton.on('click', () => {
-    menu.toggleClass('disp-none')
     if(menuOpen) {
-        menuButton.html('\u22EE')
+        menuButton.html('X')
         menuOpen = false
     } else {
-        menuButton.html('X')
+        menuButton.html('=')
         menuOpen = true
     }
+    menu.toggleClass('disp-none')
 })
 
 // SOCKET EVENT CALLBACKS==============================
@@ -85,13 +84,18 @@ socket.on('message', message => {
             }
             break;
         case 'onicecandidate':
+            //console.log('ice ')
+            //console.log(message.target.includes(userId))
             if(message.target.includes(userId)) {
                 if(peerConnections[message.userId]) {
                     console.log('got ice')
+                    //console.log(message.candidate)
+                    //console.log(message.label)
                     let candidate = new RTCIceCandidate({
                         sdpMLineIndex: message.label,
                         candidate: message.candidate,
                     })
+                    // peerConnections[message.userId].addIceCandidate(candidate)
                     if(isInitiator) {
                         peerConnections[message.userId].addIceCandidate(candidate)
                         .catch((err) => {
@@ -103,6 +107,13 @@ socket.on('message', message => {
                         }
                         candidates[message.userId].push(candidate)
                     }
+                    // peerConnections[message.userId].addIceCandidate(candidate)
+                    //console.log('ICE state: ',peerConnections[message.userId].iceConnectionState)
+                    // count += 1
+                    // if(count === 4 && peerConnections[message.userId].iceConnectionState === 'new') {
+                    //     console.log('restarting')
+                    //     sendOffer(peerConnections[message.userId])
+                    // }
                 }
                 else {
                     console.log('no peer')
@@ -158,12 +169,27 @@ function showChatRoom() {
 function onAnswer(message) {
     console.log('got answer')
     peerConnections[message.userId].setRemoteDescription(message.sdp)
+    // .then(() => {
+    //     setCandidates(message.userId)
+    // })
 }
 
+// function setCandidates(user) {
+//     if(count != 4) {
+//         setTimeout(setCandidates, 200)
+//     } else {
+//         candidates[user].forEach((candidate) => {
+//             peerConnection.addIceCandidate(candidate)
+//         })
+//     }
+// }
 
 function sendIceCandidate(event) {
     console.log('sending to ' + target)
+    //console.log(event)
     if (event.candidate) {
+        //console.log(event.candidate.candidate)
+        //console.log(event.candidate.sdpMLineIndex)
         socket.emit('message', {
             userId,
             roomId,
@@ -264,6 +290,9 @@ function sendAnswer(message) {
     const peerConnection = peerConnections[message.userId]
     addLocalTracks(peerConnection)
     peerConnection.onicecandidate = sendIceCandidate
+    // peerConnection.oniceconnectionstatechange = function(){
+    //     console.log('ICE state: ',peerConnections[message.userId].iceConnectionState)
+    // }
     peerConnection.ontrack = (event) => {
         setRemoteStream(event, message.userId)
     }
@@ -301,7 +330,11 @@ function setPeers() {
         peerConnections[users[users.length - 1]] = peerConnection
         addLocalTracks(peerConnection)
         peerConnection.onicecandidate = sendIceCandidate
+        // peerConnection.oniceconnectionstatechange = function(){
+        //     console.log('ICE state: ',peerConnection.iceConnectionState)
+        // }
         peerConnection.onicegatheringstatechange = () => {
+            //console.log(peerConnections[users[users.length - 1]].iceGatheringState)
             if(peerConnections[users[users.length - 1]].iceGatheringState == 'complete') {
                 console.log('completed gathering')
             }

@@ -49,7 +49,7 @@ body {
 }
 
 #input-message-container {
-    display: flex;
+    display: flex
     width: 17vw;
     position: absolute;
     bottom: 0;

@@ -37,20 +37,12 @@ body {
     position: relative;
 }
 
-#menu-button {
-    position: absolute;
-    right: 0;
-    height: fit-content;
-}
-
 #input-message {
-    width: 82%;
+    width: 15vw;
     border-radius: 10px;
 }
 
 #input-message-container {
-    display: flex;
-    width: 17vw;
     position: absolute;
     bottom: 0;
     right: 0;

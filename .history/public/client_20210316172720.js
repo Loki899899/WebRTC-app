@@ -3,8 +3,6 @@ room = $('#room-input')
 introPage = $('#room-selection-container')
 chatRoom = $('#chat-room-container')
 connectButton = $('#connect-button')
-menu = $('#menu')
-menuButton = $('#menu-button')
 localVideo = document.getElementById('local-video')
 videoContainer = document.getElementById('video-container')
 socket = io()
@@ -21,7 +19,6 @@ iceServers = {
 }
 
 let userId, roomId, localStream, users,
-    menuOpen = false
     count = 0,
     targets = [],
     candidates = {},
@@ -42,17 +39,6 @@ let userId, roomId, localStream, users,
 // EVENT LISTERNERS====================================
 connectButton.on('click', () => {
     joinRoom()
-})
-
-menuButton.on('click', () => {
-    menu.toggleClass('disp-none')
-    if(menuOpen) {
-        menuButton.html('\u22EE')
-        menuOpen = false
-    } else {
-        menuButton.html('X')
-        menuOpen = true
-    }
 })
 
 // SOCKET EVENT CALLBACKS==============================
@@ -85,13 +71,18 @@ socket.on('message', message => {
             }
             break;
         case 'onicecandidate':
+            //console.log('ice ')
+            //console.log(message.target.includes(userId))
             if(message.target.includes(userId)) {
                 if(peerConnections[message.userId]) {
                     console.log('got ice')
+                    //console.log(message.candidate)
+                    //console.log(message.label)
                     let candidate = new RTCIceCandidate({
                         sdpMLineIndex: message.label,
                         candidate: message.candidate,
                     })
+                    // peerConnections[message.userId].addIceCandidate(candidate)
                     if(isInitiator) {
                         peerConnections[message.userId].addIceCandidate(candidate)
                         .catch((err) => {
@@ -103,6 +94,13 @@ socket.on('message', message => {
                         }
                         candidates[message.userId].push(candidate)
                     }
+                    // peerConnections[message.userId].addIceCandidate(candidate)
+                    //console.log('ICE state: ',peerConnections[message.userId].iceConnectionState)
+                    // count += 1
+                    // if(count === 4 && peerConnections[message.userId].iceConnectionState === 'new') {
+                    //     console.log('restarting')
+                    //     sendOffer(peerConnections[message.userId])
+                    // }
                 }
                 else {
                     console.log('no peer')
@@ -158,12 +156,27 @@ function showChatRoom() {
 function onAnswer(message) {
     console.log('got answer')
     peerConnections[message.userId].setRemoteDescription(message.sdp)
+    // .then(() => {
+    //     setCandidates(message.userId)
+    // })
 }
 
+// function setCandidates(user) {
+//     if(count != 4) {
+//         setTimeout(setCandidates, 200)
+//     } else {
+//         candidates[user].forEach((candidate) => {
+//             peerConnection.addIceCandidate(candidate)
+//         })
+//     }
+// }
 
 function sendIceCandidate(event) {
     console.log('sending to ' + target)
+    //console.log(event)
     if (event.candidate) {
+        //console.log(event.candidate.candidate)
+        //console.log(event.candidate.sdpMLineIndex)
         socket.emit('message', {
             userId,
             roomId,
@@ -187,29 +200,19 @@ function setRemoteStream(message, user) {
     updateView()
 }
 
-function setWidthHeight(config) {
-    Object.keys(remoteVidEl).forEach((key) => {
-        remoteVidEl[key].setAttribute('width', config)
-        remoteVidEl[key].setAttribute('height', config)
-    })
-}
-
 function updateView() {
     localVideo.setAttribute('class', 'small-local-video')
     console.log(Object.keys(peerConnections).length)
-    switch (Object.keys(peerConnections).length) {
-        case 1:
-        case 2:
-            setWidthHeight(window.screen.width/2.5)
-            break;
-        case 3:
-            setWidthHeight(window.screen.width/3.2)
-            break;
-        case 4:
-        case 5:
-            setWidthHeight(window.screen.width/4.3)
-        default:
-            break;
+    if(Object.keys(peerConnections).length < 3) {
+        Object.keys(remoteVidEl).forEach((key) => {
+            remoteVidEl[key].setAttribute('width', window.screen.width/2.5)
+            remoteVidEl[key].setAttribute('height', window.screen.width/2.5)
+        })
+    } else if(Object.keys(peerConnections).length >= 3) {
+            Object.keys(remoteVidEl).forEach((key) => {
+                remoteVidEl[key].setAttribute('width', window.screen.width/3)
+                remoteVidEl[key].setAttribute('height', window.screen.width/3)
+            })
     }
 }
 
@@ -264,6 +267,9 @@ function sendAnswer(message) {
     const peerConnection = peerConnections[message.userId]
     addLocalTracks(peerConnection)
     peerConnection.onicecandidate = sendIceCandidate
+    // peerConnection.oniceconnectionstatechange = function(){
+    //     console.log('ICE state: ',peerConnections[message.userId].iceConnectionState)
+    // }
     peerConnection.ontrack = (event) => {
         setRemoteStream(event, message.userId)
     }
@@ -301,7 +307,11 @@ function setPeers() {
         peerConnections[users[users.length - 1]] = peerConnection
         addLocalTracks(peerConnection)
         peerConnection.onicecandidate = sendIceCandidate
+        // peerConnection.oniceconnectionstatechange = function(){
+        //     console.log('ICE state: ',peerConnection.iceConnectionState)
+        // }
         peerConnection.onicegatheringstatechange = () => {
+            //console.log(peerConnections[users[users.length - 1]].iceGatheringState)
             if(peerConnections[users[users.length - 1]].iceGatheringState == 'complete') {
                 console.log('completed gathering')
             }

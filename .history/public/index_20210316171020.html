@@ -1,17 +1,14 @@
 <!DOCTYPE html>
 <html lang='en'>
-
 <head>
     <meta charset='UTF-8'>
     <meta name='viewport' content='width=device-width, initial-scale=1.0'>
     <meta http-equiv='X-UA-Compatible' content='ie=edge'>
-    <script src='/socket.io/socket.io.js'></script>
-    <script src='https://code.jquery.com/jquery-3.5.1.slim.min.js'
-        integrity='sha256-4+XzXVhsDmqanXGHaHvgh1gMQKX40OUvDEBTu8JcmNs=' crossorigin='anonymous'></script>
+    <script src='/socket.io/socket.io.js'></script>   
+    <script src='https://code.jquery.com/jquery-3.5.1.slim.min.js' integrity='sha256-4+XzXVhsDmqanXGHaHvgh1gMQKX40OUvDEBTu8JcmNs=' crossorigin='anonymous'></script> 
     <link rel='stylesheet' type='text/css' href='./index.css'>
     <title>Document</title>
 </head>
-
 <body>
     <h1>WebRTC video conference</h1>
     <div id='room-selection-container'>
@@ -27,21 +24,19 @@
         <div id='active-chat-container'>
             <div id='chat-container'>
                 <div id='video-container'>
-                    <video id='local-video' class='video' autoplay></video>
+                    <video id='local-video' class='video' width='480' height='480' autoplay></video>
                 </div>
             </div>
         </div>
+        <button type='button' id='menu-open'></button>
         <div id='menu' class='disp-none'>
-            <div id='input-message-container'>
-                <textarea type='textarea' id='input-message'></textarea>
-                <button type='button' id='send-button'>&#x25B6;</button>
+            <button type='button' id='menu-close'>X</button>
+            <div>
+                <input type='text' id='input-message'>
+                <button type='button' id='send-button'>Send</button>
             </div>
         </div>
-
-            <button type='button' id='menu-button'>&vellip;</button>
-
     </div>
 </body>
 <script src='./client.js'></script>
-
 </html>

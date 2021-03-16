@@ -38,8 +38,6 @@ body {
 }
 
 #menu-button {
-    position: absolute;
-    right: 0;
     height: fit-content;
 }
 
@@ -49,7 +47,6 @@ body {
 }
 
 #input-message-container {
-    display: flex;
     width: 17vw;
     position: absolute;
     bottom: 0;

@@ -18,7 +18,6 @@ body {
 #chat-room-container {
     display: flex;
     height: 70vh;
-    height: fit-content;
 }
 
 #chat-container {
@@ -27,33 +26,14 @@ body {
 
 .small-local-video {
     position: absolute;
-    left: 0;
     bottom:0;
     height: 7vw;
     width: 7vw;
 }
 
-#menu {
-    position: relative;
-}
-
-#menu-button {
-    position: absolute;
-    right: 0;
-    height: fit-content;
-}
 
 #input-message {
-    width: 82%;
     border-radius: 10px;
-}
-
-#input-message-container {
-    display: flex;
-    width: 17vw;
-    position: absolute;
-    bottom: 0;
-    right: 0;
 }
 
 .disp-none {
