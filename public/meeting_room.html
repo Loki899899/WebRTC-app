@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<title>CHIT CHAT</title>
+<link rel="stylesheet" href="/css/style.css">
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+</head>
+<body>
+  <section class="meeting_room">
+    <button type="button" id="createbtn1" class="btn btn-info" style="margin-left: 40%; margin-top:20px;">Create Room</button><br><br>
+    <p style="font-size: larger; margin-left:48%; font-weight:900;color:rgb(125, 9, 129);">OR</p>
+    <input type="text" id="roomurl" style="margin-left: 15%;width:70%;border-radius: 5px;" placeholder='Enter The Link'></input>
+    <button type="button" id="joinbtn" class="btn btn-danger" style="margin-left: 40%; margin-bottom:20px; margin-top: 10px;" >Join a Room</button>
+  </section>
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="/js/room.js"></script>
+
+</body>
+</html>

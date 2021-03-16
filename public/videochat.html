@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <title>Video Chat</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="description" content="Video Chat.">
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+  <link href="/css/main.css" rel="stylesheet">
+  <link rel="stylesheet" href="/css/emojioneArea.css">
+  <script src="https://code.iconify.design/1/1.0.7/iconify.min.js"></script>
+</head>
+
+<body>
+  <video class="localVideo  mirror-mode " playsinline autoplay muted  id ='local'></video>
+  <div class="remoteVideos  mirror-mode" id="remoteVideo">
+  </div>
+
+  <div class="hangbutton">
+    <button class="btn btn-lg rounded-0 btn-no-effect " id="hangup" title="Hangup">
+      <i class="fas fa-phone-slash text-white"></  "></i>
+    </button>
+  </div>
+  1
+  <div class="mutebtn">
+    <button class="btn btn-lg rounded-0 btn-no-effect" id='toggle-mute' title="Mute">
+      <i class="fas fa-microphone text-white"></i>
+  </button>
+  </div>
+
+  <div class ="videoOFF  mirror-mode ">
+    <button class="btn btn-lg rounded-0 btn-no-effect" id='videoONN' title="videoONN">
+      <i class="fas fa-video text-white"> </i>
+    </button>
+  </div>
+
+  <div class="sharescreen">
+    <button class="btn btn-lg rounded-0 btn-no-effect" id='share-screen' title="Share screen">
+      <i class="fa fa-desktop text-white"></i>
+  </button>
+
+  <div class="RecordScreen">
+    <button class=" btn btn-lg rounded-0 btn-no-effect" id='record-screen'>
+      <i class="fas fa-dot-circle text-white"></i>
+    </button>
+  </div>
+
+  </div>
+  <div class="Navbar">
+    <div id="mySidepanel" class="sidepanel">
+      <b><a href="javascript:void(0)" class="closebtn" onclick="closeNav()">×</a>
+      <div class="message__area">
+        <a id="download"></a>
+        <span id="status"></span>
+      </div>
+      <div style="display: flex;">
+          <textarea id="textarea" cols="10" rows="1" placeholder="Write a message..."></textarea>
+          <label for="send" style="height: 10px; padding-right: 25px;">
+            <img src="https://icons.iconarchive.com/icons/vexels/office/32/email-send-icon.png">
+          </label>
+          <label for="filname">
+            <img src="https://img.icons8.com/windows/40/000000/mms.png"/>
+          </label>
+          <emoji-picker></emoji-picker>
+
+          <input type="file" id="filname" /hidden>
+          <button type="button" id="sendFile" /hidden></button>
+          <button type="button" id="send" style="width: 50px; height: 20px; " /hidden></button>
+      </div>
+      </div>
+    <button class="openbtn" onclick="openNav()">☰</button>
+    <div class="Navbar">
+      <div  id="mySidelist" class="sidelist">
+        <b><a href="javascript:void(0)" class="closebtn" onclick="closeNav()">×</a><br>
+      </div>
+
+    </div>
+    <button class="userlist" onclick="openlist()">USERS</button>
+  </div>
+  <script src='/socket.io/socket.io.js'></script>
+  <script type="module" src="/js/video.js"></script>
+  <script src="/js/client.js" charset="utf-8"></script>
+  <script>
+    function openNav() {
+    document.getElementById("mySidepanel").style.width = "350px";
+  }
+
+  function closeNav() {
+    document.getElementById("mySidepanel").style.width = "0";
+    document.getElementById("mySidelist").style.width = "0";
+  }
+
+  function openlist(){
+    document.getElementById("mySidelist").style.width = "350px";
+  }
+  </script>
+  <script
+  src="https://code.jquery.com/jquery-3.5.1.min.js"
+  integrity="sha256-9/aliU8dGd2tb6OSsuzixeV4y/faTqgFtohetphbbj0="
+  crossorigin="anonymous">
+</script>
+
+<script type="text/javascript">
+$(document).ready(function() {
+  $("#textarea").emojioneArea({
+     
+  });
+});
+
+$(document).ready(function() {
+$("#send").click(function(e) {
+  e.preventDefault();
+  $(".emojionearea-editor").html('');
+
+});
+});
+</script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.24.0/moment.min.js"></script>
+  <script src='https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/1.3.8/FileSaver.min.js'></script>
+  <script src="/js/emojionearea.js"></script>
+  <script src="/js/client.js" charset="utf-8"></script>
+</body>
+
+</html>
