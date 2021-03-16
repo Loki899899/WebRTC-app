@@ -121,12 +121,8 @@ socket.on('attendee-update', (attendees) => {
 
 socket.on('hangup', (user, attendees) => {
     remoteVidEl[user].remove()
-    peerConnections[user].close()
-    delete peerConnections[user]
     if(attendees === 1) {
         localVideo.classList.remove('small-local-video')
-    } else {
-        updateView()
     }
     
 })
@@ -200,16 +196,11 @@ function setRemoteStream(message, user) {
 function updateView() {
     localVideo.setAttribute('class', 'small-local-video')
     console.log(Object.keys(peerConnections).length)
-    if(Object.keys(peerConnections).length < 3) {
+    if(Object.keys(peerConnections).length == 2) {
         Object.keys(remoteVidEl).forEach((key) => {
-            remoteVidEl[key].setAttribute('width', '480')
-            remoteVidEl[key].setAttribute('height', '480')
+            remoteVidEl[key].setAttribute('width', '360')
+            remoteVidEl[key].setAttribute('height', '360')
         })
-    } else if(Object.keys(peerConnections).length == 3) {
-            Object.keys(remoteVidEl).forEach((key) => {
-                remoteVidEl[key].setAttribute('width', '360')
-                remoteVidEl[key].setAttribute('height', '360')
-            })
     }
 }
 
@@ -274,9 +265,6 @@ function sendAnswer(message) {
             .then((answer) => {
                 candidates[message.userId].forEach((candidate) => {
                     peerConnection.addIceCandidate(candidate)
-                    .catch((err) => {
-                        console.log('cannot add err ' + err)
-                    })
                 })
                 peerConnection.setLocalDescription(answer)
                 socket.emit('message', {

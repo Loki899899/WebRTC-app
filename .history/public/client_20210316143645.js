@@ -274,9 +274,6 @@ function sendAnswer(message) {
             .then((answer) => {
                 candidates[message.userId].forEach((candidate) => {
                     peerConnection.addIceCandidate(candidate)
-                    .catch((err) => {
-                        console.log('cannot add err ' + err)
-                    })
                 })
                 peerConnection.setLocalDescription(answer)
                 socket.emit('message', {
