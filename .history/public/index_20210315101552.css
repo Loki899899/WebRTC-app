@@ -24,6 +24,10 @@ body {
     height: 90%;
 }
 
+#video-container {
+
+}
+
 .small-local-video {
     position: absolute;
     height: 8vw;
