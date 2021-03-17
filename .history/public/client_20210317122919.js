@@ -5,12 +5,9 @@ chatRoom = $('#chat-room-container')
 connectButton = $('#connect-button')
 menu = $('#menu')
 menuButton = $('#menu-button')
-usersButton = $('#users-button')
 textMessage = $('#input-message')
 sendButton = $('#send-button')
-textChatContainer = $('#text-chat-container')
 messagesContainer = $('#messages-container')
-usersList = $('#users-list')
 localVideo = document.getElementById('local-video')
 videoContainer = document.getElementById('video-container')
 socket = io()
@@ -27,7 +24,6 @@ iceServers = {
 }
 
 let userId, roomId, localStream, users,
-    isCreator = false
     menuOpen = false
     count = 0,
     targets = [],
@@ -65,32 +61,11 @@ menuButton.on('click', () => {
 sendButton.on('click', () => {
     console.log(textMessage.val())
     textMessage.val('')
-    messagesContainer
-        .append($('<div>')
-            .addClass('message-box-holder')
-            .append($('<div>')
-                .addClass('outgoing-msg').
-                text('this')))
+    messagesContainer.append($('<div>').addClass('outgoing-msg').text('this'))
 })
-
-usersButton.on('click', () => {
-    textChatContainer.toggleClass('disp-none')
-    usersList.toggleClass('disp-none')
-})
-
-// $('.remoteuser').on('click', () => {
-    
-// })
-
-// $('div').on('click', '.usersettings',() => {
-//     // if(confirm($(this).attr('act') + ': ' + $(this).attr('user'))) {
-//     //     socket.emit('kick-user', this.attr('user'), roomId)
-//     // }
-// })
 
 // SOCKET EVENT CALLBACKS==============================
 socket.on('room_created', () => {
-    isCreator = true
     console.log('room created')
     showChatRoom()
     getLocalStream()
@@ -155,27 +130,13 @@ socket.on('full_room', () => {
 
 socket.on('attendee-update', (attendees) => {
     users = attendees
-    console.log(users)
-    if(users[users.length-1] != userId) {
-        updateUsers(users[users.length - 1], 'remote')
-    } else {
-        updateUserList()
-    }
     setPeers()
-})
-
-socket.on('kick-user', (user) => {
-    if(user === userId) {
-        location.reload()
-        alert('Kicked from room')
-    }
 })
 
 socket.on('hangup', (user, attendees) => {
     remoteVidEl[user].remove()
     peerConnections[user].close()
     delete peerConnections[user]
-    $('#remoteuser-'+user).remove()
     if(attendees === 1) {
         localVideo.classList.remove('small-local-video')
     } else {
@@ -199,56 +160,8 @@ function joinRoom() {
 
 // function to hide intro screen and show chat room
 function showChatRoom() {
-    updateUsers(userId)
-    usersList.append($('<hr>'))
     introPage.toggleClass('disp-none')
     chatRoom.toggleClass('disp-none')
-}
-// let returnListItem = 
-//let returnListItem = (text, user) => {$('<li>').attr({act:text, user:user}).addClass('user-settings').text(text)}
-//let returnListItem = (text, user) => {"<li act="text" user={user} class='user-settings'>{text}</li>"}
-
-function updateUsers(user, remote = '') {
-    let remoteUserDiv = $('<div>')
-        .attr('id', remote + 'user-' + user)
-        .addClass(remote + 'user')
-        .text(user)
-        .on('mouseover mouseout', () => {
-            if(isCreator) {
-                $('#' + remote + user + 'settings').toggleClass('disp-none')
-            }
-        })
-    usersList.append(remoteUserDiv)
-    if (remote != '') {
-        remoteUserDiv.append(
-            $('<ul>')
-                .attr('id', remote + user + 'settings')
-                .addClass('remote-user-settings')
-                .addClass('disp-none')
-                .append(
-                    $('<li>')
-                        .attr({ id: 'kick-' + user, act: 'Kick', user: user })
-                        .addClass('usersettings')
-                        .text('Kick')
-                        .on('click', () => {
-                            console.log($('#kick-' + user).attr('act'))
-                            if (confirm($('#kick-' + user).attr('act') + ': ' + $('#kick-' + user).attr('user'))) {
-                                socket.emit('kick-user', $('#kick-' + user).attr('user'), roomId)
-                            }
-                        })
-        )
-            .append($('<hr>'))
-            .append(
-                $('<li>').attr({ id: 'host-' + user, act: 'Make-host', user: user }).addClass('usersettings').text('Make Host')
-            )
-        )
-    }
-}
-
-function updateUserList() {
-    users.slice(0, users.length - 1).forEach((user) => {
-        updateUsers(user, 'remote')
-    })    
 }
 
 function onAnswer(message) {
@@ -354,13 +267,9 @@ function getLocalStream(message, createAnswer = false) {
 }
 
 function addLocalTracks(peerConnection) {
-    try {
-        localStream.getTracks().forEach((track) => {
-            peerConnection.addTrack(track, localStream)
-        })
-    } catch (err) {
-        console.log('cannot add tracks error: ' + err)
-    }
+    localStream.getTracks().forEach((track) => {
+        peerConnection.addTrack(track, localStream)
+    })
 }
 
 function sendAnswer(message) {
@@ -386,8 +295,6 @@ function sendAnswer(message) {
                 console.log('sent ans')
             })
             addIce(message.userId)
-        }).catch((err) => {
-            console.log('no peers to add ' + err)
         })
 }
 

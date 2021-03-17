@@ -213,10 +213,8 @@ function updateUsers(user, remote = '') {
         .attr('id', remote + 'user-' + user)
         .addClass(remote + 'user')
         .text(user)
-        .on('mouseover mouseout', () => {
-            if(isCreator) {
-                $('#' + remote + user + 'settings').toggleClass('disp-none')
-            }
+        .on('click', () => {
+            $('#' + remote + user + 'settings').toggleClass('disp-none')
         })
     usersList.append(remoteUserDiv)
     if (remote != '') {
@@ -235,7 +233,7 @@ function updateUsers(user, remote = '') {
                             if (confirm($('#kick-' + user).attr('act') + ': ' + $('#kick-' + user).attr('user'))) {
                                 socket.emit('kick-user', $('#kick-' + user).attr('user'), roomId)
                             }
-                        })
+                        }))
         )
             .append($('<hr>'))
             .append(

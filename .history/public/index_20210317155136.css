@@ -7,14 +7,6 @@ hr {
     margin-bottom: 0.1em;
 }
 
-ul {
-    position: absolute;
-    width: fit-content;
-    border-style: groove;
-    margin: 0;
-    padding: 0;
-}
-
 #room-selection-container {
     justify-content: center;
     display: grid;
@@ -54,32 +46,14 @@ ul {
     width: 17vw;
 }
 
-
-
 #menu-button {
     position: absolute;
     right: 0;
     height: fit-content;
 }
 
-.user, .remoteuser {
-    cursor: default;
-}
-
-.remote-user-settings li:hover {
-    cursor: pointer;
-    background-color: limegreen; 
-}
-.remote-user-settings  {
-    border: none;
-}
-
 .remote-user-settings {
     list-style: none;
-    box-shadow: 0 0 9px 1px #999;
-    background-color: beige;
-    transition: all .4s ease-in-out;
-    border: solid 1px #fff;
 }
 
 .remoteuser, .user {
@@ -108,6 +82,10 @@ ul {
     display: grid;
     padding: 5px;
     overflow-y: auto;
+}
+
+.message-box-holder {
+    display: block;
 }
 
 .outgoing-msg {

@@ -1,0 +1,67 @@
+body {
+    text-align: center
+}
+
+#room-selection-container {
+    justify-content: center;
+    display: grid;
+}
+
+#active-users {
+    width: 19.5%;
+}
+
+#active-chat-container {
+    width:100%;
+}
+
+#chat-room-container {
+    display: flex;
+    height: 70vh;
+    height: fit-content;
+}
+
+#chat-container {
+    height: 90%;
+}
+
+.small-local-video {
+    position: absolute;
+    left: 0;
+    bottom:0;
+    height: 7vw;
+    width: 7vw;
+}
+
+#menu {
+    position: relative;
+    background-color: bisque;
+    width: 17vw;
+}
+
+#menu-button {
+    position: absolute;
+    right: 0;
+    height: fit-content;
+}
+
+#input-message {
+    width: 83%;
+    border-radius: 10px;
+}
+
+#send-button {
+    width: 10%;
+}
+
+#input-message-container {
+    display: flex;
+    width: 17vw;
+    position: absolute;
+    bottom: 0;
+    right: 0;
+}
+
+.disp-none {
+    display:none !important;
+}

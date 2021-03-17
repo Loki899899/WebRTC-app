@@ -82,11 +82,11 @@ usersButton.on('click', () => {
     
 // })
 
-// $('div').on('click', '.usersettings',() => {
-//     // if(confirm($(this).attr('act') + ': ' + $(this).attr('user'))) {
-//     //     socket.emit('kick-user', this.attr('user'), roomId)
-//     // }
-// })
+$('.user-settings').on('click', () => {
+    if(confirm(this.attr('act') + ': ' + this.attr('user'))) {
+        socket.emit('kick-user', this.attr('user'), roomId)
+    }
+})
 
 // SOCKET EVENT CALLBACKS==============================
 socket.on('room_created', () => {
@@ -167,7 +167,6 @@ socket.on('attendee-update', (attendees) => {
 socket.on('kick-user', (user) => {
     if(user === userId) {
         location.reload()
-        alert('Kicked from room')
     }
 })
 
@@ -205,42 +204,23 @@ function showChatRoom() {
     chatRoom.toggleClass('disp-none')
 }
 // let returnListItem = 
-//let returnListItem = (text, user) => {$('<li>').attr({act:text, user:user}).addClass('user-settings').text(text)}
-//let returnListItem = (text, user) => {"<li act="text" user={user} class='user-settings'>{text}</li>"}
+let returnListItem = (text, user) => {$('<li>').attr({act:text, user:user}).addClass('user-settings').text(text)}
 
-function updateUsers(user, remote = '') {
-    let remoteUserDiv = $('<div>')
-        .attr('id', remote + 'user-' + user)
-        .addClass(remote + 'user')
-        .text(user)
-        .on('mouseover mouseout', () => {
-            if(isCreator) {
-                $('#' + remote + user + 'settings').toggleClass('disp-none')
-            }
-        })
-    usersList.append(remoteUserDiv)
-    if (remote != '') {
-        remoteUserDiv.append(
+function updateUsers(user, remote='') {
+    usersList.append(
+        $('<div>')
+            .attr('id', remote+'user-' + user)
+            .addClass(remote+'user')
+            .text(user)
+    )
+    if(remote!='') {
+        usersList.append(
             $('<ul>')
-                .attr('id', remote + user + 'settings')
-                .addClass('remote-user-settings')
-                .addClass('disp-none')
-                .append(
-                    $('<li>')
-                        .attr({ id: 'kick-' + user, act: 'Kick', user: user })
-                        .addClass('usersettings')
-                        .text('Kick')
-                        .on('click', () => {
-                            console.log($('#kick-' + user).attr('act'))
-                            if (confirm($('#kick-' + user).attr('act') + ': ' + $('#kick-' + user).attr('user'))) {
-                                socket.emit('kick-user', $('#kick-' + user).attr('user'), roomId)
-                            }
-                        })
-        )
+            .attr('id', remote+user+'settings')
+            .addClass('remote-user-settings')
+            .append(returnListItem('Kick', user))
             .append($('<hr>'))
-            .append(
-                $('<li>').attr({ id: 'host-' + user, act: 'Make-host', user: user }).addClass('usersettings').text('Make Host')
-            )
+            .append(returnListItem('Make-host', user))
         )
     }
 }
@@ -248,7 +228,7 @@ function updateUsers(user, remote = '') {
 function updateUserList() {
     users.slice(0, users.length - 1).forEach((user) => {
         updateUsers(user, 'remote')
-    })    
+    })
 }
 
 function onAnswer(message) {

@@ -35,7 +35,7 @@ io.on('connection', (socket) => {
             roomIds[roomId].peers.push(userId)
             // console.log(roomIds)
             // console.log(roomIds[roomId].peers)
-            socket.emit('room_joined', roomIds[roomId].peers)  
+            socket.emit('room_joined', roomId)  
             io.in(roomId).emit('attendee-update', roomIds[roomId].peers)                      
             //socket.emit('presenter-change', currentPresenter)
         } else {  //if the room is full
@@ -47,11 +47,6 @@ io.on('connection', (socket) => {
     socket.on('message', (message) => {
         socket.broadcast.to(message.roomId).emit('message', message, socket.id)
         console.log('sending ' + message.type + ' id ' + message.userId)
-    })
-
-    socket.on('kick-user', (user, roomId) => {
-        console.log('kicking user')
-        socket.broadcast.to(roomId).emit('kick-user', user)
     })
 
     socket.on('disconnect', () => {

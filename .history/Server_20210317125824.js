@@ -49,11 +49,6 @@ io.on('connection', (socket) => {
         console.log('sending ' + message.type + ' id ' + message.userId)
     })
 
-    socket.on('kick-user', (user, roomId) => {
-        console.log('kicking user')
-        socket.broadcast.to(roomId).emit('kick-user', user)
-    })
-
     socket.on('disconnect', () => {
         Object.keys(roomIds).forEach(key => {
             if(roomIds[key].socketIds.includes(socket.id)){

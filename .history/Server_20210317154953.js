@@ -50,7 +50,6 @@ io.on('connection', (socket) => {
     })
 
     socket.on('kick-user', (user, roomId) => {
-        console.log('kicking user')
         socket.broadcast.to(roomId).emit('kick-user', user)
     })
 

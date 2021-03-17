@@ -48,6 +48,7 @@ ul {
 }
 
 #menu {
+    cursor: pointer;
     text-align: initial;
     position: relative;
     background-color: bisque;
@@ -62,12 +63,7 @@ ul {
     height: fit-content;
 }
 
-.user, .remoteuser {
-    cursor: default;
-}
-
 .remote-user-settings li:hover {
-    cursor: pointer;
     background-color: limegreen; 
 }
 .remote-user-settings  {
@@ -108,6 +104,10 @@ ul {
     display: grid;
     padding: 5px;
     overflow-y: auto;
+}
+
+.message-box-holder {
+    display: block;
 }
 
 .outgoing-msg {

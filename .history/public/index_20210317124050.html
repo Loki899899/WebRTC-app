@@ -6,7 +6,8 @@
     <meta name='viewport' content='width=device-width, initial-scale=1.0'>
     <meta http-equiv='X-UA-Compatible' content='ie=edge'>
     <script src='/socket.io/socket.io.js'></script>
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+    <script src='https://code.jquery.com/jquery-3.5.1.slim.min.js'
+        integrity='sha256-4+XzXVhsDmqanXGHaHvgh1gMQKX40OUvDEBTu8JcmNs=' crossorigin='anonymous'></script>
     <link rel='stylesheet' type='text/css' href='./index.css'>
     <title>Document</title>
 </head>
@@ -32,17 +33,14 @@
         </div>
         <div id='menu' class='disp-none'>
             <button id='users-button'>&#x1F6B9;</button>
-            <div id='users-list' class='disp-none'></div>
-            <div id='text-chat-container'>
-                <div id='messages-container'>
-                    <div class='message-box-holder'>
-                        <div class='incoming-msg'>IM</div>
-                    </div>
+            <div id='messages-container'>
+                <div class='message-box-holder'>
+                    <div class='incoming-msg'>IM</div>
                 </div>
-                <div id='input-message-container'>
-                    <textarea type='textarea' id='input-message'></textarea>
-                    <button type='button' id='send-button'>&#x25B6;</button>
-                </div>
+            </div>
+            <div id='input-message-container'>
+                <textarea type='textarea' id='input-message'></textarea>
+                <button type='button' id='send-button'>&#x25B6;</button>
             </div>
         </div>
         <button type='button' id='menu-button'>&vellip;</button>

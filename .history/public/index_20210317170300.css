@@ -54,24 +54,10 @@ ul {
     width: 17vw;
 }
 
-
-
 #menu-button {
     position: absolute;
     right: 0;
     height: fit-content;
-}
-
-.user, .remoteuser {
-    cursor: default;
-}
-
-.remote-user-settings li:hover {
-    cursor: pointer;
-    background-color: limegreen; 
-}
-.remote-user-settings  {
-    border: none;
 }
 
 .remote-user-settings {
@@ -110,6 +96,10 @@ ul {
     overflow-y: auto;
 }
 
+.message-box-holder {
+    display: block;
+}
+
 .outgoing-msg {
     background-color: blue;
     float: right;
@@ -128,6 +118,8 @@ ul {
 }
 
 .disp-none {
+    transition: opacity 2s;
+    opacity: 0%;
     display:none !important;
 }
 

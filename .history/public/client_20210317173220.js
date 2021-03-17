@@ -213,7 +213,7 @@ function updateUsers(user, remote = '') {
         .attr('id', remote + 'user-' + user)
         .addClass(remote + 'user')
         .text(user)
-        .on('mouseover mouseout', () => {
+        .on('click', () => {
             if(isCreator) {
                 $('#' + remote + user + 'settings').toggleClass('disp-none')
             }

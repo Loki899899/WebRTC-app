@@ -62,7 +62,7 @@ ul {
     height: fit-content;
 }
 
-.user, .remoteuser {
+.user {
     cursor: default;
 }
 
@@ -108,6 +108,10 @@ ul {
     display: grid;
     padding: 5px;
     overflow-y: auto;
+}
+
+.message-box-holder {
+    display: block;
 }
 
 .outgoing-msg {

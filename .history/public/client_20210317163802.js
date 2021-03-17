@@ -166,8 +166,8 @@ socket.on('attendee-update', (attendees) => {
 
 socket.on('kick-user', (user) => {
     if(user === userId) {
-        location.reload()
         alert('Kicked from room')
+        location.reload()
     }
 })
 
@@ -213,34 +213,29 @@ function updateUsers(user, remote = '') {
         .attr('id', remote + 'user-' + user)
         .addClass(remote + 'user')
         .text(user)
-        .on('mouseover mouseout', () => {
-            if(isCreator) {
-                $('#' + remote + user + 'settings').toggleClass('disp-none')
-            }
-        })
     usersList.append(remoteUserDiv)
     if (remote != '') {
         remoteUserDiv.append(
             $('<ul>')
                 .attr('id', remote + user + 'settings')
                 .addClass('remote-user-settings')
-                .addClass('disp-none')
                 .append(
                     $('<li>')
-                        .attr({ id: 'kick-' + user, act: 'Kick', user: user })
-                        .addClass('usersettings')
-                        .text('Kick')
-                        .on('click', () => {
-                            console.log($('#kick-' + user).attr('act'))
-                            if (confirm($('#kick-' + user).attr('act') + ': ' + $('#kick-' + user).attr('user'))) {
-                                socket.emit('kick-user', $('#kick-' + user).attr('user'), roomId)
-                            }
-                        })
-        )
-            .append($('<hr>'))
-            .append(
-                $('<li>').attr({ id: 'host-' + user, act: 'Make-host', user: user }).addClass('usersettings').text('Make Host')
-            )
+                        .append($('<button>')
+                            .attr({ id: 'kick-' + user, act: 'Kick', user: user })
+                            .addClass('usersettings')
+                            .text('Kick')
+                            .on('click', () => {
+                                console.log($('#kick-' + user).attr('act'))
+                                if (confirm($('#kick-' + user).attr('act') + ': ' + $('#kick-' + user).attr('user'))) {
+                                    socket.emit('kick-user', $('#kick-' + user).attr('user'), roomId)
+                                }
+                            }))
+                )
+                .append($('<hr>'))
+                .append(
+                    $('<li>').attr({ id: 'host-' + user, act: 'Make-host', user: user }).addClass('usersettings').text('Make Host')
+                )
         )
     }
 }
