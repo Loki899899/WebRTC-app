@@ -5,7 +5,7 @@
   "main": "Server.js",
   "scripts": {
     "start": "npx nodemon Server.js",
-    "git": "sh -c 'git add . && git commit -m \"${0:-Default-commit-message}\" && git push origin ver4'",
+    "git": "sh -c 'git add . && git commit -m \"${0:-default-message}\" && git push origin ver4'",
     "test": "can be added"
   },
   "repository": {
