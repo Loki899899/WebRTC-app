@@ -11,11 +11,11 @@ socket = io()
 iceServers = {
     iceServers: [
         { urls: 'stun:stun.l.google.com:19302' },
-        {
-            urls: "turn:numb.viagenie.ca:3478",
-            username: "lokeshsingh899@gmail.com",
-            credential: "Lokesh@numb899"
-        },
+        // {
+        //     urls: "turn:numb.viagenie.ca:3478",
+        //     username: "lokeshsingh899@gmail.com",
+        //     credential: "Lokesh@numb899"
+        // },
     ],
     iceTransportPolicy: "all"
 }
@@ -246,8 +246,7 @@ function getLocalStream(message, createAnswer = false) {
             localVideo.srcObject = stream
         })
         .catch((err) => {
-            alert('Media devices not found\nOr\nPermission Denied')
-            console.log('cannot get stream ' + err)
+            console.log('cannot get stream')
         })
         .then(() => {
             if(createAnswer) {
