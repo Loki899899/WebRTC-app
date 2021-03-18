@@ -10,6 +10,7 @@ textMessage = $('#input-message')
 sendButton = $('#send-button')
 textChatContainer = $('#text-chat-container')
 messagesContainer = $('#messages-container')
+fileUpload = $('#file')
 usersList = $('#users-list')
 localVideo = document.getElementById('local-video')
 videoContainer = document.getElementById('video-container')
@@ -63,14 +64,17 @@ menuButton.on('click', () => {
 })
 
 sendButton.on('click', () => {
-    console.log(textMessage.val())
-    textMessage.val('')
-    messagesContainer
-        .append($('<div>')
-            .addClass('message-box-holder')
-            .append($('<div>')
-                .addClass('outgoing-msg').
-                text('this')))
+    if (textMessage.val()) {
+        handleMessage(textMessage.val(), 'outgoing-msg')
+        scrollToMessage(messagesContainer)
+        socket.emit('message', {
+            userId: userId,
+            type: 'text-message',
+            msg: textMessage.val(),
+            roomId: roomId
+        })
+        textMessage.val('')
+    }
 })
 
 usersButton.on('click', () => {
@@ -78,25 +82,24 @@ usersButton.on('click', () => {
     usersList.toggleClass('disp-none')
 })
 
-// $('.remoteuser').on('click', () => {
-    
-// })
-
-// $('div').on('click', '.usersettings',() => {
-//     // if(confirm($(this).attr('act') + ': ' + $(this).attr('user'))) {
-//     //     socket.emit('kick-user', this.attr('user'), roomId)
-//     // }
-// })
+fileUpload.on('change', () => {
+    if(fileUpload.val()) {
+        //console.log(file)
+        sendFileToRoom(fileUpload.prop('files')[0])
+        //sendFileToRoom(document.querySelector('#file').files[0])
+    }
+})
 
 // SOCKET EVENT CALLBACKS==============================
 socket.on('room_created', () => {
     isCreator = true
+    hasRightsToShareScreen = true
     console.log('room created')
     showChatRoom()
     getLocalStream()
 })
 
-socket.on('room_joined', () => {
+socket.on('room_joined', (screenSharing) => {
     console.log('room joined')    
     showChatRoom()
 })
@@ -143,8 +146,14 @@ socket.on('message', message => {
                 }
             }
             break;
+        case 'text-message':
+            handleMessage(message.msg, 'incoming-msg')
+            break;
+        case 'file':
+            handleFileMessage(message)
+            break;
         default:
-            console.log('what!')
+            console.log('This cannot be')
             break;
     }
 })
@@ -155,13 +164,18 @@ socket.on('full_room', () => {
 
 socket.on('attendee-update', (attendees) => {
     users = attendees
-    console.log(users)
     if(users[users.length-1] != userId) {
         updateUsers(users[users.length - 1], 'remote')
     } else {
         updateUserList()
     }
     setPeers()
+})
+
+socket.on('change-host', (user) => {
+    if(user === userId) {
+        isCreator = true
+    }
 })
 
 socket.on('kick-user', (user) => {
@@ -208,13 +222,26 @@ function showChatRoom() {
 //let returnListItem = (text, user) => {$('<li>').attr({act:text, user:user}).addClass('user-settings').text(text)}
 //let returnListItem = (text, user) => {"<li act="text" user={user} class='user-settings'>{text}</li>"}
 
+function returnList(user, act) {
+    let element = $('#'+act+'-' + user)
+    return ($('<li>')
+        .attr({ id: act+'-' + user, act: act, user: user })
+        .addClass('usersettings')
+        .text(act)
+        .on('click', () => {
+            if (confirm(element.attr('act') + ': ' + element.attr('user'))) {
+                socket.emit(act+'-user', element.attr('user'), roomId)
+            }
+        }));
+}
+
 function updateUsers(user, remote = '') {
     let remoteUserDiv = $('<div>')
         .attr('id', remote + 'user-' + user)
         .addClass(remote + 'user')
         .text(user)
         .on('mouseover mouseout', () => {
-            if(isCreator) {
+            if (isCreator) {
                 $('#' + remote + user + 'settings').toggleClass('disp-none')
             }
         })
@@ -225,22 +252,21 @@ function updateUsers(user, remote = '') {
                 .attr('id', remote + user + 'settings')
                 .addClass('remote-user-settings')
                 .addClass('disp-none')
+                .append(returnList(user, 'kick'))
+                .append($('<hr>'))
                 .append(
                     $('<li>')
-                        .attr({ id: 'kick-' + user, act: 'Kick', user: user })
+                        .attr({ id: 'host-' + user, act: 'Make-host', user: user })
                         .addClass('usersettings')
-                        .text('Kick')
+                        .text('Make Host')
                         .on('click', () => {
-                            console.log($('#kick-' + user).attr('act'))
-                            if (confirm($('#kick-' + user).attr('act') + ': ' + $('#kick-' + user).attr('user'))) {
-                                socket.emit('kick-user', $('#kick-' + user).attr('user'), roomId)
+                            if(confirm($('#host-' + user).attr('act') + ': ' + $('#host-' + user).attr('user'))) {
+                                isCreator = false
+                                socket.emit('Make host', user, roomId)
+                                $('#' + remote + user + 'settings').toggleClass('disp-none')
                             }
                         })
-        )
-            .append($('<hr>'))
-            .append(
-                $('<li>').attr({ id: 'host-' + user, act: 'Make-host', user: user }).addClass('usersettings').text('Make Host')
-            )
+                )
         )
     }
 }
@@ -249,6 +275,57 @@ function updateUserList() {
     users.slice(0, users.length - 1).forEach((user) => {
         updateUsers(user, 'remote')
     })    
+}
+
+function handleMessage(message, type, isFile = false) {
+    if (isFile) {
+        messagesContainer
+            .append($('<div>')
+                .addClass('message-box-holder')
+                .append(message
+                    .addClass(type)))
+    } else {
+        messagesContainer
+            .append($('<div>')
+                .addClass('message-box-holder')
+                .append($('<div>')
+                    .addClass(type).
+                    text(message)))
+    }
+}
+
+function scrollToMessage(element) {
+    element.animate({scrollTop: element.height()})
+}
+
+function sendFileToRoom(file) {
+    let blob = new Blob([file])
+    let fileMsg = $('<a>').attr({ href: URL.createObjectURL(blob), download: file.name, })
+        .append($('<span>')
+            .addClass('file')
+            .text(file.name))
+        .append('<span>')
+    handleMessage(fileMsg, 'outgoing-msg', true)
+    socket.emit('message', {
+        userId: userId,
+        roomId: roomId,
+        type: 'file',
+        fileName: file.name,
+        fileSize: file.size,
+        fileType: file.type,
+        blob: blob
+    })
+}
+
+function handleFileMessage(message) {
+    let blob = new Blob([message.blob])
+    console.log(blob)
+    let fileMsg = $('<a>')
+        .attr({ href: URL.createObjectURL(blob), download: message.fileName, })
+        .append($('<span>')
+            .attr({id: message.filename})
+            .text(message.fileName + '\n' + message.fileSize))
+    handleMessage(fileMsg, 'incoming-msg', true)
 }
 
 function onAnswer(message) {
@@ -272,7 +349,7 @@ function sendIceCandidate(event) {
 }
 
 function setRemoteStream(message, user) {
-    remotevids[user] = message.streams[0].id
+    //remotevids[user] = message.streams[0].id
     remoteVidEl[user] = document.createElement('video')
     remoteVidEl[user].srcObject = message.streams[0]
     videoContainer.appendChild(remoteVidEl[user])
@@ -292,7 +369,6 @@ function setWidthHeight(config) {
 
 function updateView() {
     localVideo.setAttribute('class', 'small-local-video')
-    console.log(Object.keys(peerConnections).length)
     switch (Object.keys(peerConnections).length) {
         case 1:
         case 2:
@@ -358,6 +434,9 @@ function addLocalTracks(peerConnection) {
         localStream.getTracks().forEach((track) => {
             peerConnection.addTrack(track, localStream)
         })
+        if(isSharingScreen) {
+            replaceVideoTrack(screenCapture)
+        }
     } catch (err) {
         console.log('cannot add tracks error: ' + err)
     }
@@ -369,6 +448,7 @@ function sendAnswer(message) {
     addLocalTracks(peerConnection)
     peerConnection.onicecandidate = sendIceCandidate
     peerConnection.ontrack = (event) => {
+        console.log(event)
         setRemoteStream(event, message.userId)
     }
     peerConnection.setRemoteDescription(new RTCSessionDescription(message.sdp))
@@ -407,11 +487,6 @@ function setPeers() {
         peerConnections[users[users.length - 1]] = peerConnection
         addLocalTracks(peerConnection)
         peerConnection.onicecandidate = sendIceCandidate
-        peerConnection.onicegatheringstatechange = () => {
-            if(peerConnections[users[users.length - 1]].iceGatheringState == 'complete') {
-                console.log('completed gathering')
-            }
-        }
         peerConnection.ontrack = (event) => {
             setRemoteStream(event, users[users.length - 1])
         }

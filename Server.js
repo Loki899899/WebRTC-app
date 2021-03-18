@@ -22,6 +22,7 @@ io.on('connection', (socket) => {
             roomIds[roomId] = {}
             roomIds[roomId].socketIds = []
             roomIds[roomId].peers = [] 
+            roomIds[roomId].screenSharing = false
             roomIds[roomId].socketIds.push(socket.id)  
             roomIds[roomId].peers.push(userId)
             console.log(roomIds)
@@ -35,7 +36,7 @@ io.on('connection', (socket) => {
             roomIds[roomId].peers.push(userId)
             // console.log(roomIds)
             // console.log(roomIds[roomId].peers)
-            socket.emit('room_joined', roomIds[roomId].peers)  
+            socket.emit('room_joined', roomIds[roomId].screenSharing)  
             io.in(roomId).emit('attendee-update', roomIds[roomId].peers)                      
             //socket.emit('presenter-change', currentPresenter)
         } else {  //if the room is full
@@ -47,6 +48,15 @@ io.on('connection', (socket) => {
     socket.on('message', (message) => {
         socket.broadcast.to(message.roomId).emit('message', message, socket.id)
         console.log('sending ' + message.type + ' id ' + message.userId)
+    })
+    
+    socket.on('screen-sharing-live', (roomId) => {
+        roomIds[roomId].screenSharing = true
+    })
+
+    socket.on('Make host', (user, roomId) => {
+        console.log('changing host')
+        socket.broadcast.to(roomId).emit('change-host', user)
     })
 
     socket.on('kick-user', (user, roomId) => {
@@ -61,6 +71,9 @@ io.on('connection', (socket) => {
                     delete roomIds[key]
                 } else {
                     io.to(key).emit('hangup', roomIds[key].peers[roomIds[key].socketIds.indexOf(socket.id)], roomIds[key].peers.length - 1)
+                    if(socket.id === roomIds[key].socketIds[0]) {
+                        socket.broadcast.to(key).emit('change-host', roomIds[key].peers[1])
+                    }
                     //console.log(roomIds)
                     roomIds[key].peers = roomIds[key].peers.filter((peer) => {
                         return peer!=roomIds[key].peers[roomIds[key].socketIds.indexOf(socket.id)]

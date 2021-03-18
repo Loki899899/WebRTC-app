@@ -30,13 +30,24 @@ ul {
 
 #chat-room-container {
     display: flex;
-    height: 70vh;
-    height: fit-content;
+    height: 85vh;
     position: relative;
 }
 
 #chat-container {
     height: 90%;
+}
+#text-chat-container {
+    height: 92%;
+}
+
+#text-chat-container ::-webkit-scrollbar {
+    width: 5px
+}
+
+#text-chat-container ::-webkit-scrollbar-thumb {
+    border-radius: 3px;
+    background: #888;
 }
 
 .small-local-video {
@@ -51,7 +62,7 @@ ul {
     text-align: initial;
     position: relative;
     background-color: bisque;
-    width: 17vw;
+    width: 20vw;
 }
 
 
@@ -62,8 +73,8 @@ ul {
     height: fit-content;
 }
 
-.user, .remoteuser {
-    cursor: default;
+.remoteuser {
+    position: relative;
 }
 
 .remote-user-settings li:hover {
@@ -71,6 +82,10 @@ ul {
     background-color: limegreen; 
 }
 .remote-user-settings  {
+    z-index: 1;
+    position: absolute;
+    top: 10%;
+    margin-left: 15%;
     border: none;
 }
 
@@ -83,36 +98,66 @@ ul {
 }
 
 .remoteuser, .user {
+    cursor: default;
     padding-left: 0.4em;
     padding-top: 0.1em;
     padding-bottom: 0.1em;
 }
 
 #input-message {
-    width: 73%;
+    width: 87%;
     border-radius: 10px;
+    outline: none;
+    padding-right: 10%;
 }
 
 #send-button {
     width: 10%;
     border-radius: 50%;
+    outline: none;
 }
 
 .outgoing-msg, .incoming-msg {
+    text-decoration: none;
+    color: black;
+    word-break: break-word;
+    white-space: break-spaces;
+    margin-bottom: 4px;
+    max-width: 80%;
     width: fit-content;
     border-radius: 7px;
-    padding: 5px;
+    padding: 5%;
+}
+
+#file+label {
+    position: absolute;
+    right: 0;
+    border-radius: 50%;
+    padding: 0.5rem;
+    font-family: sans-serif;
+    cursor: pointer;
+}
+
+#msg-and-file {
+    width: 87%;
+    position: relative;
 }
 
 #messages-container {
-    display: grid;
+    display: block;
+    height: 100%;
     padding: 5px;
-    overflow-y: auto;
+    overflow: scroll;
 }
 
 .outgoing-msg {
-    background-color: blue;
+    background-color: dodgerblue;
     float: right;
+}
+
+span.file{
+    padding: 0.4em;
+    box-shadow: inset 2px 0px 7px 1px darkblue;
 }
 
 .incoming-msg {
@@ -125,6 +170,10 @@ ul {
     width: 17vw;
     position: absolute;
     bottom: 0;
+}
+
+.message-box-holder {
+    clear: both;
 }
 
 .disp-none {

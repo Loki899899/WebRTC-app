@@ -7,7 +7,7 @@
     <meta http-equiv='X-UA-Compatible' content='ie=edge'>
     <script src='/socket.io/socket.io.js'></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
-    <link rel='stylesheet' type='text/css' href='./index.css'>
+    <link rel='stylesheet' type='text/css' href='./css/index.css'>
     <title>Document</title>
 </head>
 
@@ -25,6 +25,7 @@
     <div id='chat-room-container' class='disp-none'>
         <div id='active-chat-container'>
             <div id='chat-container'>
+                <button id='screen-share'>Share Screen</button>
                 <div id='video-container'>
                     <video id='local-video' class='video' autoplay></video>
                 </div>
@@ -36,19 +37,22 @@
             <div id='text-chat-container'>
                 <div id='messages-container'>
                     <div class='message-box-holder'>
-                        <div class='incoming-msg'>IM</div>
+                        <div class='incoming-msg'>Welcome to room</div>
                     </div>
                 </div>
                 <div id='input-message-container'>
-                    <textarea type='textarea' id='input-message'></textarea>
+                    <div id='msg-and-file'>
+                        <textarea type='textarea' id='input-message'></textarea>
+                        <input type='file' id='file' hidden>
+                        <label for='file'>&#128206;</label>
+                    </div>
                     <button type='button' id='send-button'>&#x25B6;</button>
                 </div>
             </div>
         </div>
         <button type='button' id='menu-button'>&vellip;</button>
-
     </div>
 </body>
-<script src='./client.js'></script>
-
+<script src='./js/client.js'></script>
+<script src='./js/screen_share.js'></script>
 </html>
