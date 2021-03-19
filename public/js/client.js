@@ -13,7 +13,7 @@ messagesContainer = $('#messages-container')
 fileUpload = $('#file')
 usersList = $('#users-list')
 localVideo = document.getElementById('local-video')
-videoContainer = document.getElementById('video-container')
+videoContainer = $('#video-container')//document.getElementById('video-container')
 socket = io()
 iceServers = {
     iceServers: [
@@ -37,10 +37,9 @@ let userId, roomId, localStream, users,
     isInitiator = false,
     isAttendee = false,
     remoteVidEl = {},
-    remotevids = {},
     hasDevices = false,
     constraints = {
-        audio: false,
+        audio: true,
         video: {
             'width': 360,//window.screen.availHeight/2,
             'height': 360//window.screen.availHeight/2
@@ -84,9 +83,7 @@ usersButton.on('click', () => {
 
 fileUpload.on('change', () => {
     if(fileUpload.val()) {
-        //console.log(file)
         sendFileToRoom(fileUpload.prop('files')[0])
-        //sendFileToRoom(document.querySelector('#file').files[0])
     }
 })
 
@@ -99,7 +96,7 @@ socket.on('room_created', () => {
     getLocalStream()
 })
 
-socket.on('room_joined', (screenSharing) => {
+socket.on('room_joined', () => {
     console.log('room joined')    
     showChatRoom()
 })
@@ -158,6 +155,12 @@ socket.on('message', message => {
     }
 })
 
+socket.on('Allow Screen Sharing-user', (user) => {
+    if(user === userId) {
+        hasRightsToShareScreen = true
+    }
+})
+
 socket.on('full_room', () => {
     alert('Rool full')
 })
@@ -172,13 +175,14 @@ socket.on('attendee-update', (attendees) => {
     setPeers()
 })
 
-socket.on('change-host', (user) => {
+socket.on('Make host', (user) => {
     if(user === userId) {
         isCreator = true
     }
 })
 
-socket.on('kick-user', (user) => {
+socket.on('Kick-user', (user) => {
+    console.log('to kick '+ user)
     if(user === userId) {
         location.reload()
         alert('Kicked from room')
@@ -217,20 +221,19 @@ function showChatRoom() {
     usersList.append($('<hr>'))
     introPage.toggleClass('disp-none')
     chatRoom.toggleClass('disp-none')
-}
-// let returnListItem = 
-//let returnListItem = (text, user) => {$('<li>').attr({act:text, user:user}).addClass('user-settings').text(text)}
-//let returnListItem = (text, user) => {"<li act="text" user={user} class='user-settings'>{text}</li>"}
+} 
 
 function returnList(user, act) {
-    let element = $('#'+act+'-' + user)
     return ($('<li>')
         .attr({ id: act+'-' + user, act: act, user: user })
         .addClass('usersettings')
         .text(act)
         .on('click', () => {
-            if (confirm(element.attr('act') + ': ' + element.attr('user'))) {
-                socket.emit(act+'-user', element.attr('user'), roomId)
+            if (confirm($('#Kick-'+user).attr('act') + ': ' + $('#Kick-'+user).attr('user'))) {
+                socket.emit(act+'-user', $('#Kick-'+user).attr('user'), roomId)
+                if(act === 'Allow Screen Sharing') {
+                    hasRightsToShareScreen = false
+                }
             }
         }));
 }
@@ -252,7 +255,7 @@ function updateUsers(user, remote = '') {
                 .attr('id', remote + user + 'settings')
                 .addClass('remote-user-settings')
                 .addClass('disp-none')
-                .append(returnList(user, 'kick'))
+                .append(returnList(user, 'Kick'))
                 .append($('<hr>'))
                 .append(
                     $('<li>')
@@ -267,6 +270,7 @@ function updateUsers(user, remote = '') {
                             }
                         })
                 )
+                .append(returnList(user, 'Allow Screen Sharing'))
         )
     }
 }
@@ -319,7 +323,6 @@ function sendFileToRoom(file) {
 
 function handleFileMessage(message) {
     let blob = new Blob([message.blob])
-    console.log(blob)
     let fileMsg = $('<a>')
         .attr({ href: URL.createObjectURL(blob), download: message.fileName, })
         .append($('<span>')
@@ -331,6 +334,9 @@ function handleFileMessage(message) {
 function onAnswer(message) {
     console.log('got answer')
     peerConnections[message.userId].setRemoteDescription(message.sdp)
+    if(isSharingScreen&&hasRightsToShareScreen) {
+        replaceVideoTrack(screenCapture.getVideoTracks()[0])
+    }
 }
 
 
@@ -348,15 +354,24 @@ function sendIceCandidate(event) {
     }
 }
 
+
 function setRemoteStream(message, user) {
-    //remotevids[user] = message.streams[0].id
+    remoteVideoContainer = $('<div>').attr({ id: 'remote-vid-container-' + user }).addClass('remote-vid-container')
+    //let remoteVideoContainer = 
     remoteVidEl[user] = document.createElement('video')
     remoteVidEl[user].srcObject = message.streams[0]
-    videoContainer.appendChild(remoteVidEl[user])
+    //remoteVidEl["two"][0].setAttributeNS('','srcObject', message.streams[0])
+    videoContainer.append(remoteVideoContainer[0])
+    //remoteVideoContainer.append([remoteVidEl[user]])
     remoteVidEl[user].setAttribute('id', 'vid-' + user)
-    remoteVidEl[user].setAttribute('width', window.screen.width/2.5)
-    remoteVidEl[user].setAttribute('height', window.screen.width/2.5)
+    remoteVidEl[user].setAttribute('width', window.screen.width / 2.5)
+    remoteVidEl[user].setAttribute('height', window.screen.width / 2.5)
     remoteVidEl[user].setAttribute('autoplay', 'autoplay')
+    remoteVideoContainer.append(remoteVidEl[user])
+    remoteVideoContainer.append(videoButtonOptions(remoteVidEl[user], user))
+    // remoteVidEl[user].srcObject.getVideoTracks()[0].enabled.addEventListener('onchange', () => {
+    //     if(remoteVidEl[user].srcObject.getVideoTracks()[0].enabled == 'true')
+    // })
     updateView()
 }
 
@@ -380,6 +395,7 @@ function updateView() {
         case 4:
         case 5:
             setWidthHeight(window.screen.width/4.3)
+            break;
         default:
             break;
     }
@@ -408,6 +424,36 @@ function onOffer(message) {
     getLocalStream(message, true)
 }
 
+function videoButtonOptions(video, user) {
+    return ([$('<button>')
+        .attr({ id: 'mute-button-' + user})
+        .addClass('mute-button')
+        .text('mute')
+        .on('click', () => {
+            if ($('#mute-button-' + user).text() === 'mute') {
+                console.log('click')
+                video.srcObject.getAudioTracks()[0].enabled = false
+                $('#mute-button-' + user).text('unmute')
+            } else {
+                video.srcObject.getAudioTracks()[0].enabled = true
+                $('#mute-button-' + user).text('mute')
+            }
+        }),
+        $('<button>')
+            .attr('id', 'video-disable-button-' + user)
+            .addClass('video-disable-button')
+            .text('disable')
+            .on('click', () => {
+                if ($('#video-disable-button-' + user).text() == 'disable') {
+                    video.srcObject.getVideoTracks()[0].enabled = false
+                    $('#video-disable-button-' + user).text('enable')
+                } else {
+                    video.srcObject.getVideoTracks()[0].enabled = true
+                    $('#video-disable-button-' + user).text('disable')
+                }
+            })]);
+}
+
 function getLocalStream(message, createAnswer = false) {
     if(navigator.mediaDevices.getUserMedia) {
         navigator.mediaDevices.getUserMedia(constraints)
@@ -416,6 +462,7 @@ function getLocalStream(message, createAnswer = false) {
             localVideo.setAttribute('width', window.screen.width/2.5)
             localVideo.setAttribute('height', window.screen.width/2.5)
             localVideo.srcObject = stream
+            $('#local-video-container').append(videoButtonOptions(localVideo, userId))
         })
         .catch((err) => {
             alert('Media devices not found\nOr\nPermission Denied')
@@ -434,9 +481,6 @@ function addLocalTracks(peerConnection) {
         localStream.getTracks().forEach((track) => {
             peerConnection.addTrack(track, localStream)
         })
-        if(isSharingScreen) {
-            replaceVideoTrack(screenCapture)
-        }
     } catch (err) {
         console.log('cannot add tracks error: ' + err)
     }
@@ -448,8 +492,9 @@ function sendAnswer(message) {
     addLocalTracks(peerConnection)
     peerConnection.onicecandidate = sendIceCandidate
     peerConnection.ontrack = (event) => {
-        console.log(event)
-        setRemoteStream(event, message.userId)
+        if(event.track.kind == 'video') {
+            setRemoteStream(event, message.userId)
+        }
     }
     peerConnection.setRemoteDescription(new RTCSessionDescription(message.sdp))
         .then(() => {
@@ -488,7 +533,9 @@ function setPeers() {
         addLocalTracks(peerConnection)
         peerConnection.onicecandidate = sendIceCandidate
         peerConnection.ontrack = (event) => {
-            setRemoteStream(event, users[users.length - 1])
+            if(event.track.kind == 'video') {
+                setRemoteStream(event, users[users.length - 1])
+            }
         }
         sendOffer(peerConnection)
     }

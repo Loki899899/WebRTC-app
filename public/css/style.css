@@ -37,6 +37,28 @@ ul {
 #chat-container {
     height: 90%;
 }
+
+#video-container {
+    display: inline-flex;
+}
+
+.remote-vid-container {
+    position: relative;
+}
+
+.video-disable-button, .mute-button {
+    position: absolute;
+    bottom: 0;
+}
+
+.mute-button {
+    left: 0;
+}
+
+.video-disable-button {
+    right: 0;
+}
+
 #text-chat-container {
     height: 92%;
 }
@@ -64,8 +86,6 @@ ul {
     background-color: bisque;
     width: 20vw;
 }
-
-
 
 #menu-button {
     position: absolute;

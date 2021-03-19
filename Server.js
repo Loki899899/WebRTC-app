@@ -6,7 +6,7 @@ const express = require('express')
         key:fs.readFileSync('key.pem'),
         cert:fs.readFileSync('cert.pem'),
     }
-    server = require('https').createServer(options, app)
+    server = require('http').createServer(app)
     io = require('socket.io')(server)
 
 let roomIds = {}  
@@ -22,7 +22,6 @@ io.on('connection', (socket) => {
             roomIds[roomId] = {}
             roomIds[roomId].socketIds = []
             roomIds[roomId].peers = [] 
-            roomIds[roomId].screenSharing = false
             roomIds[roomId].socketIds.push(socket.id)  
             roomIds[roomId].peers.push(userId)
             console.log(roomIds)
@@ -36,7 +35,7 @@ io.on('connection', (socket) => {
             roomIds[roomId].peers.push(userId)
             // console.log(roomIds)
             // console.log(roomIds[roomId].peers)
-            socket.emit('room_joined', roomIds[roomId].screenSharing)  
+            socket.emit('room_joined')  
             io.in(roomId).emit('attendee-update', roomIds[roomId].peers)                      
             //socket.emit('presenter-change', currentPresenter)
         } else {  //if the room is full
@@ -46,22 +45,22 @@ io.on('connection', (socket) => {
     })
 
     socket.on('message', (message) => {
-        socket.broadcast.to(message.roomId).emit('message', message, socket.id)
+        socket.broadcast.to(message.roomId).emit('message', message)
         console.log('sending ' + message.type + ' id ' + message.userId)
     })
-    
-    socket.on('screen-sharing-live', (roomId) => {
-        roomIds[roomId].screenSharing = true
+
+    socket.on('Allow Screen Sharing-user', (user, roomId) => {
+        socket.broadcast.to(roomId).emit('Allow Screen Sharing-user', user)
     })
 
     socket.on('Make host', (user, roomId) => {
         console.log('changing host')
-        socket.broadcast.to(roomId).emit('change-host', user)
+        socket.broadcast.to(roomId).emit('Make host', user)
     })
 
-    socket.on('kick-user', (user, roomId) => {
+    socket.on('Kick-user', (user, roomId) => {
         console.log('kicking user')
-        socket.broadcast.to(roomId).emit('kick-user', user)
+        socket.broadcast.to(roomId).emit('Kick-user', user)
     })
 
     socket.on('disconnect', () => {
@@ -74,7 +73,6 @@ io.on('connection', (socket) => {
                     if(socket.id === roomIds[key].socketIds[0]) {
                         socket.broadcast.to(key).emit('change-host', roomIds[key].peers[1])
                     }
-                    //console.log(roomIds)
                     roomIds[key].peers = roomIds[key].peers.filter((peer) => {
                         return peer!=roomIds[key].peers[roomIds[key].socketIds.indexOf(socket.id)]
                     })
